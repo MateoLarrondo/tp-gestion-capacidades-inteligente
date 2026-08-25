@@ -72,3 +72,39 @@ class Personal:
     def reiniciar_semana(self):
         """Regla 12: Restablece la contabilidad de horas al inicio de un nuevo ciclo."""
         self.horas_asignadas_semana = 0.0
+
+class AreaTrabajo:
+    """Modela un área de trabajo y sus requisitos de acceso."""
+
+    def __init__(
+        self,
+        id_area: str,
+        nombre: str,
+        supervisor: Personal,
+        credenciales_requeridas: Set[str],
+        cupos_por_franja: dict,
+    ):
+        self.id_area = id_area
+        self.nombre = nombre
+        self.supervisor = supervisor
+        self.credenciales_requeridas = set(credenciales_requeridas)
+        self.cupos_por_franja = cupos_por_franja
+        self.personas_asignadas_por_franja = {}
+
+    def tiene_cupo(self, franja: str):
+        """Regla 6: Verifica si todavía hay capacidad en una franja horaria."""
+        cantidad_actual = self.personas_asignadas_por_franja.get(franja, 0)
+        limite = self.cupos_por_franja.get(franja, 0)
+
+        return cantidad_actual < limite
+
+    def ocupar_cupo(self, franja: str):
+        """Registra una nueva persona asignada a una franja."""
+        if not self.tiene_cupo(franja):
+            raise ValueError(
+                f"La franja {franja} del área {self.nombre} está completa."
+            )
+
+        self.personas_asignadas_por_franja[franja] = (
+            self.personas_asignadas_por_franja.get(franja, 0) + 1
+        )

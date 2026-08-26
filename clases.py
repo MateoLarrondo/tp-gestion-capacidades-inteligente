@@ -1,6 +1,6 @@
 from datetime import date
-from typing import List, Set
-
+from enum import Enum
+from typing import Dict, List, Optional, Set
 
 class Credencial:
     """Modela una credencial profesional con su período de vigencia."""
@@ -73,38 +73,63 @@ class Personal:
         """Regla 12: Restablece la contabilidad de horas al inicio de un nuevo ciclo."""
         self.horas_asignadas_semana = 0.0
 
-class AreaTrabajo:
-    """Modela un área de trabajo y sus requisitos de acceso."""
+class EstadoAsignacion(Enum):
+    PENDIENTE = "Pendiente"
+    APROBADA = "Aprobada"
+
+
+class AreaDeTrabajo:
+    """Modela un área de trabajo con sus credenciales obligatorias y cupos por franja."""
 
     def __init__(
         self,
         id_area: str,
         nombre: str,
-        supervisor: Personal,
-        credenciales_requeridas: Set[str],
-        cupos_por_franja: dict,
+        credenciales_obligatorias: Set[str],
+        limite_personal_por_franja: Dict[str, int],
     ):
         self.id_area = id_area
         self.nombre = nombre
-        self.supervisor = supervisor
+        # Regla 10
+        self.credenciales_obligatorias = set(credenciales_obligatorias)
+        # Regla 6
+        self.limite_personal_por_franja = limite_personal_por_franja
+        # {(fecha, franja): set(id_personal)}
+        self._personal_asignado_por_franja: Dict[tuple, Set[str]] = {}
+
+    def tiene_cupo_disponible(self, fecha: date, franja_horaria: str, id_personal: str) -> bool:
+        """Regla 6: verifica si la franja tiene capacidad en la fecha dada."""
+        limite = self.limite_personal_por_franja.get(franja_horaria, 0)
+        personal_actual = self._personal_asignado_por_franja.get((fecha, franja_horaria), set())
+        if id_personal in personal_actual:
+            return True
+        return len(personal_actual) < limite
+
+    def registrar_personal_en_franja(self, fecha: date, franja_horaria: str, id_personal: str) -> None:
+        clave = (fecha, franja_horaria)
+        if clave not in self._personal_asignado_por_franja:
+            self._personal_asignado_por_franja[clave] = set()
+        self._personal_asignado_por_franja[clave].add(id_personal)
+
+
+class Labor:
+    """Regla 3: una labor con su duración, requisitos y el área donde se realiza."""
+
+    def __init__(
+        self,
+        id_labor: str,
+        titulo: str,
+        descripcion: str,
+        duracion_horas: float,
+        habilidades_requeridas: Set[str],
+        credenciales_requeridas: Set[str],
+        area_trabajo: AreaDeTrabajo,
+    ):
+        self.id_labor = id_labor
+        self.titulo = titulo
+        self.descripcion = descripcion
+        self.duracion_horas = duracion_horas
+        self.habilidades_requeridas = set(habilidades_requeridas)
         self.credenciales_requeridas = set(credenciales_requeridas)
-        self.cupos_por_franja = cupos_por_franja
-        self.personas_asignadas_por_franja = {}
+        self.area_trabajo = area_trabajo
 
-    def tiene_cupo(self, franja: str):
-        """Regla 6: Verifica si todavía hay capacidad en una franja horaria."""
-        cantidad_actual = self.personas_asignadas_por_franja.get(franja, 0)
-        limite = self.cupos_por_franja.get(franja, 0)
-
-        return cantidad_actual < limite
-
-    def ocupar_cupo(self, franja: str):
-        """Registra una nueva persona asignada a una franja."""
-        if not self.tiene_cupo(franja):
-            raise ValueError(
-                f"La franja {franja} del área {self.nombre} está completa."
-            )
-
-        self.personas_asignadas_por_franja[franja] = (
-            self.personas_asignadas_por_franja.get(franja, 0) + 1
-        )

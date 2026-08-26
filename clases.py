@@ -133,3 +133,29 @@ class Labor:
         self.credenciales_requeridas = set(credenciales_requeridas)
         self.area_trabajo = area_trabajo
 
+class Asignacion:
+    """Modela el registro de asignación de una labor a un trabajador."""
+
+    def _init_(
+        self,
+        id_asignacion: str,
+        labor: Labor,
+        trabajador: Personal,
+        fecha: date,
+        franja_horaria: str,
+    ):
+        self.id_asignacion = id_asignacion
+        self.labor = labor
+        self.trabajador = trabajador
+        self.fecha = fecha
+        self.franja_horaria = franja_horaria
+        # Regla 8: nace 'Pendiente'
+        self.estado = EstadoAsignacion.PENDIENTE
+        self.supervisor_aprobador: Optional[Personal] = None
+
+    def formalizar(self, supervisor: Personal) -> None:
+        """Regla 8: solo un supervisor puede aprobar."""
+        if not supervisor.es_supervisor:
+            raise PermissionError(f"El usuario {supervisor.nombre} no tiene permisos de supervisor.")
+        self.estado = EstadoAsignacion.APROBADA
+        self.supervisor_aprobador = supervisor

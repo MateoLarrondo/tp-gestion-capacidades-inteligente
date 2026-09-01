@@ -1,6 +1,6 @@
 from datetime import date
-from enum import Enum
-from typing import Dict, List, Optional, Set
+from typing import List, Set
+
 
 class Credencial:
     """Modela una credencial profesional con su período de vigencia."""
@@ -14,6 +14,17 @@ class Credencial:
         """Regla 2: Determina si la credencial está activa en una fecha específica."""
         return self.fecha_obtencion <= fecha_consulta <= self.fecha_expiracion
 
+    def fechas_validas(self, fecha_inicio: date, fecha_fin: date):
+        """Regla 3: Verifica si un rango de fechas es válido."""
+        if fecha_inicio > fecha_fin:
+            raise ValueError(
+                f"Fecha de inicio {fecha_inicio} no puede ser posterior a la fecha de fin {fecha_fin}."
+            )
+        if fecha_fin < self.fecha_obtencion or fecha_inicio > self.fecha_expiracion:
+            raise ValueError(
+                f"El rango {fecha_inicio} - {fecha_fin} no coincide con la vigencia de la credencial {self.nombre}."
+            )
+        
 class Personal:
     """Modela al trabajador, sus competencias, horas acumuladas y rol."""
 
@@ -66,96 +77,61 @@ class Personal:
             raise ValueError(
                 f"La asignación supera el límite semanal de {self.limite_horas_semanales} hs de {self.nombre}."
             )
-
         self.horas_asignadas_semana += horas
 
     def reiniciar_semana(self):
         """Regla 12: Restablece la contabilidad de horas al inicio de un nuevo ciclo."""
         self.horas_asignadas_semana = 0.0
 
-class EstadoAsignacion(Enum):
-    PENDIENTE = "Pendiente"
-    APROBADA = "Aprobada"
-
-
-class AreaDeTrabajo:
-    """Modela un área de trabajo con sus credenciales obligatorias y cupos por franja."""
+    def limite_horas_valido(self):
+        """Regla 11: Verifica que el límite de horas semanales sea positivo."""
+        if self.limite_horas_semanales <= 0:
+            raise ValueError(
+                f"El límite de horas semanales debe ser positivo para {self.nombre}."
+            )
+    
+class AreaTrabajo:
+    """Modela un área de trabajo y sus requisitos de acceso."""
 
     def __init__(
         self,
         id_area: str,
         nombre: str,
-        credenciales_obligatorias: Set[str],
-        limite_personal_por_franja: Dict[str, int],
+        supervisor: Personal,
+        credenciales_requeridas: Set[str],
+        cupos_por_franja: dict,
     ):
         self.id_area = id_area
         self.nombre = nombre
-        # Regla 10
-        self.credenciales_obligatorias = set(credenciales_obligatorias)
-        # Regla 6
-        self.limite_personal_por_franja = limite_personal_por_franja
-        # {(fecha, franja): set(id_personal)}
-        self._personal_asignado_por_franja: Dict[tuple, Set[str]] = {}
-
-    def tiene_cupo_disponible(self, fecha: date, franja_horaria: str, id_personal: str) -> bool:
-        """Regla 6: verifica si la franja tiene capacidad en la fecha dada."""
-        limite = self.limite_personal_por_franja.get(franja_horaria, 0)
-        personal_actual = self._personal_asignado_por_franja.get((fecha, franja_horaria), set())
-        if id_personal in personal_actual:
-            return True
-        return len(personal_actual) < limite
-
-    def registrar_personal_en_franja(self, fecha: date, franja_horaria: str, id_personal: str) -> None:
-        clave = (fecha, franja_horaria)
-        if clave not in self._personal_asignado_por_franja:
-            self._personal_asignado_por_franja[clave] = set()
-        self._personal_asignado_por_franja[clave].add(id_personal)
-
-
-class Labor:
-    """Regla 3: una labor con su duración, requisitos y el área donde se realiza."""
-
-    def __init__(
-        self,
-        id_labor: str,
-        titulo: str,
-        descripcion: str,
-        duracion_horas: float,
-        habilidades_requeridas: Set[str],
-        credenciales_requeridas: Set[str],
-        area_trabajo: AreaDeTrabajo,
-    ):
-        self.id_labor = id_labor
-        self.titulo = titulo
-        self.descripcion = descripcion
-        self.duracion_horas = duracion_horas
-        self.habilidades_requeridas = set(habilidades_requeridas)
+        self.supervisor = supervisor
         self.credenciales_requeridas = set(credenciales_requeridas)
-        self.area_trabajo = area_trabajo
+        self.cupos_por_franja = cupos_por_franja
+        self.personas_asignadas_por_franja = {}
 
-class Asignacion:
-    """Modela el registro de asignación de una labor a un trabajador."""
+    def tiene_cupo(self, franja: str):
+        """Regla 6: Verifica si todavía hay capacidad en una franja horaria."""
+        cantidad_actual = self.personas_asignadas_por_franja.get(franja, 0)
+        limite = self.cupos_por_franja.get(franja, 0)
 
-    def _init_(
-        self,
-        id_asignacion: str,
-        labor: Labor,
-        trabajador: Personal,
-        fecha: date,
-        franja_horaria: str,
-    ):
-        self.id_asignacion = id_asignacion
-        self.labor = labor
-        self.trabajador = trabajador
-        self.fecha = fecha
-        self.franja_horaria = franja_horaria
-        # Regla 8: nace 'Pendiente'
-        self.estado = EstadoAsignacion.PENDIENTE
-        self.supervisor_aprobador: Optional[Personal] = None
+        return cantidad_actual < limite
 
-    def formalizar(self, supervisor: Personal) -> None:
-        """Regla 8: solo un supervisor puede aprobar."""
-        if not supervisor.es_supervisor:
-            raise PermissionError(f"El usuario {supervisor.nombre} no tiene permisos de supervisor.")
-        self.estado = EstadoAsignacion.APROBADA
-        self.supervisor_aprobador = supervisor
+    def ocupar_cupo(self, franja: str):
+        """Registra una nueva persona asignada a una franja."""
+        if not self.tiene_cupo(franja):
+            raise ValueError(
+                f"La franja {franja} del área {self.nombre} está completa."
+            )
+
+        self.personas_asignadas_por_franja[franja] = (
+            self.personas_asignadas_por_franja.get(franja, 0) + 1
+        )
+
+    def validar_limite_personal_por_franja(self):
+        """Regla 7: Asegura que el número de personas asignadas no exceda los cupos."""
+        for franja, cantidad in self.personas_asignadas_por_franja.items():
+            limite = self.cupos_por_franja.get(franja, 0)
+            if cantidad > limite:
+                raise ValueError(
+                    f"El área {self.nombre} tiene {cantidad} personas en la franja {franja}, "
+                    f"excediendo el límite de {limite}."
+                )

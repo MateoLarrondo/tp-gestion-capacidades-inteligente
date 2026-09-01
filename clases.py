@@ -9,10 +9,18 @@ class Credencial:
         self.nombre = nombre
         self.fecha_obtencion = fecha_obtencion
         self.fecha_expiracion = fecha_expiracion
+        self.validar_fechas()
 
     def esta_activa(self, fecha_consulta: date):
         """Regla 2: Determina si la credencial está activa en una fecha específica."""
         return self.fecha_obtencion <= fecha_consulta <= self.fecha_expiracion
+
+    def validar_fechas(self):
+        """Regla 11: Asegura que la fecha de obtención preceda a la de expiración."""
+        if self.fecha_obtencion >= self.fecha_expiracion:
+            raise ValueError(
+                f"La fecha de obtención {self.fecha_obtencion} debe ser anterior a la de expiración {self.fecha_expiracion}."
+            )
 
 class Personal:
     """Modela al trabajador, sus competencias, horas acumuladas y rol."""
@@ -36,6 +44,8 @@ class Personal:
 
         # Regla 8: Roles y facultades de supervisión
         self.es_supervisor = es_supervisor
+        self.id_no_vacio()              # ← se llaman solas
+        self.limite_horas_positivo()
 
     def obtener_credenciales_activas(self, fecha_consulta: date):
         """Devuelve el conjunto de nombres de credenciales vigentes a la fecha dada."""
@@ -73,6 +83,23 @@ class Personal:
         """Regla 12: Restablece la contabilidad de horas al inicio de un nuevo ciclo."""
         self.horas_asignadas_semana = 0.0
 
+    def limite_horas_positivo(self):
+        """Regla 15: Asegura que el límite de horas semanales sea un valor positivo."""
+        if self.limite_horas_semanales <= 0:
+            raise ValueError(
+                f"El límite de horas semanales para {self.nombre} debe ser mayor a cero. Valor dado: {self.limite_horas_semanales}"
+            )
+
+    def id_no_vacio(self):
+        """Regla 16: Asegura que el identificador del personal no esté vacío."""
+        if not self.id_personal:
+            raise ValueError("El identificador del personal no puede estar vacío.")
+
+class FranjaHoraria(Enum):
+    MANIANA = "Mañana"
+    TARDE = "Tarde"
+    NOCHE = "Noche"
+
 class EstadoAsignacion(Enum):
     PENDIENTE = "Pendiente"
     APROBADA = "Aprobada"
@@ -86,7 +113,7 @@ class AreaDeTrabajo:
         id_area: str,
         nombre: str,
         credenciales_obligatorias: Set[str],
-        limite_personal_por_franja: Dict[str, int],
+        limite_personal_por_franja: Dict[FranjaHoraria, int],
     ):
         self.id_area = id_area
         self.nombre = nombre
@@ -96,8 +123,10 @@ class AreaDeTrabajo:
         self.limite_personal_por_franja = limite_personal_por_franja
         # {(fecha, franja): set(id_personal)}
         self._personal_asignado_por_franja: Dict[tuple, Set[str]] = {}
+        self.validar_limite_personal_por_franja()
 
-    def tiene_cupo_disponible(self, fecha: date, franja_horaria: str, id_personal: str) -> bool:
+
+    def tiene_cupo_disponible(self, fecha: date, franja_horaria: FranjaHoraria, id_personal: str) -> bool:
         """Regla 6: verifica si la franja tiene capacidad en la fecha dada."""
         limite = self.limite_personal_por_franja.get(franja_horaria, 0)
         personal_actual = self._personal_asignado_por_franja.get((fecha, franja_horaria), set())
@@ -105,11 +134,19 @@ class AreaDeTrabajo:
             return True
         return len(personal_actual) < limite
 
-    def registrar_personal_en_franja(self, fecha: date, franja_horaria: str, id_personal: str) -> None:
+    def registrar_personal_en_franja(self, fecha: date, franja_horaria: FranjaHoraria, id_personal: str) -> None:
         clave = (fecha, franja_horaria)
         if clave not in self._personal_asignado_por_franja:
             self._personal_asignado_por_franja[clave] = set()
         self._personal_asignado_por_franja[clave].add(id_personal)
+
+    def validar_limite_personal_por_franja(self):
+        """Regla 17: Asegura que los límites de personal por franja sean positivos."""
+        for franja, limite in self.limite_personal_por_franja.items():
+            if limite < 0:
+                raise ValueError(
+                    f"El límite de personal para la franja '{franja}' en el área '{self.nombre}' debe ser mayor a cero. Valor dado: {limite}"
+                )
 
 
 class Labor:
@@ -132,6 +169,27 @@ class Labor:
         self.habilidades_requeridas = set(habilidades_requeridas)
         self.credenciales_requeridas = set(credenciales_requeridas)
         self.area_trabajo = area_trabajo
+        self.id_no_vacio()             # ← se llaman solas
+        self.titulo_no_vacio()
+        self.validar_duracion_horas()
+
+    def validar_duracion_horas(self):
+        """Regla 7: asegura que la duración de la labor sea positiva."""
+        if self.duracion_horas <= 0:
+            raise ValueError(
+                f"La duración de la labor {self.titulo} debe ser mayor a cero. Valor dado: {self.duracion_horas}"
+            )
+
+    def id_no_vacio(self):
+        """Regla 13: asegura que el identificador de la labor no esté vacío."""
+        if not self.id_labor:
+            raise ValueError("El identificador de la labor no puede estar vacío.")
+
+    def titulo_no_vacio(self):
+        """Regla 14: asegura que el título de la labor no esté vacío."""
+        if not self.titulo:
+            raise ValueError("El título de la labor no puede estar vacío.")
+
 
 class Asignacion:
     """Modela el registro de asignación de una labor a un trabajador."""
@@ -142,7 +200,7 @@ class Asignacion:
         labor: Labor,
         trabajador: Personal,
         fecha: date,
-        franja_horaria: str,
+        franja_horaria: FranjaHoraria,
     ):
         self.id_asignacion = id_asignacion
         self.labor = labor

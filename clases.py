@@ -12,11 +12,11 @@ class Credencial:
         self.validar_fechas()
 
     def esta_activa(self, fecha_consulta: date):
-        """Regla 2: Determina si la credencial está activa en una fecha específica."""
+        """Determina si la credencial está activa en una fecha específica."""
         return self.fecha_obtencion <= fecha_consulta <= self.fecha_expiracion
 
     def validar_fechas(self):
-        """Regla 11: Asegura que la fecha de obtención preceda a la de expiración."""
+        """Asegura que la fecha de obtención preceda a la de expiración."""
         if self.fecha_obtencion >= self.fecha_expiracion:
             raise ValueError(
                 f"La fecha de obtención {self.fecha_obtencion} debe ser anterior a la de expiración {self.fecha_expiracion}."
@@ -34,7 +34,7 @@ class Personal:
         limite_horas_semanales: float,
         es_supervisor: bool = False,
     ):
-        # Regla 1: Identificador único, datos básicos y carga horaria inicializada en 0
+        # Identificador único, datos básicos y carga horaria inicializada en 0
         self.id_personal = id_personal
         self.nombre = nombre
         self.habilidades = set(habilidades)
@@ -42,7 +42,7 @@ class Personal:
         self.limite_horas_semanales = limite_horas_semanales
         self.horas_asignadas_semana = 0.0
 
-        # Regla 8: Roles y facultades de supervisión
+        # Roles y facultades de supervisión
         self.es_supervisor = es_supervisor
         self.id_no_vacio()              # ← se llaman solas
         self.limite_horas_positivo()
@@ -60,18 +60,18 @@ class Personal:
     def tiene_credenciales_activas(
         self, credenciales_requeridas: Set[str], fecha_consulta: date
     ):
-        """Regla 4 y 10: Valida que posea todas las credenciales requeridas y que estén vigentes."""
+        """Valida que posea todas las credenciales requeridas y que estén vigentes."""
         activas = self.obtener_credenciales_activas(fecha_consulta)
         return credenciales_requeridas.issubset(activas)
 
     def excede_limite_horas(self, horas_nueva_labor: float):
-        """Regla 5: Comprueba si añadir una nueva labor excede la carga semanal máxima."""
+        """Comprueba si añadir una nueva labor excede la carga semanal máxima."""
         return (
             self.horas_asignadas_semana + horas_nueva_labor
         ) > self.limite_horas_semanales
 
     def acumular_horas(self, horas: float):
-        """Regla 9: Asigna las horas de una nueva labor al total acumulado semanal."""
+        """Asigna las horas de una nueva labor al total acumulado semanal."""
         if self.excede_limite_horas(horas):
             raise ValueError(
                 f"La asignación supera el límite semanal de {self.limite_horas_semanales} hs de {self.nombre}."
@@ -80,18 +80,18 @@ class Personal:
         self.horas_asignadas_semana += horas
 
     def reiniciar_semana(self):
-        """Regla 12: Restablece la contabilidad de horas al inicio de un nuevo ciclo."""
+        """Restablece la contabilidad de horas al inicio de un nuevo ciclo."""
         self.horas_asignadas_semana = 0.0
 
     def limite_horas_positivo(self):
-        """Regla 15: Asegura que el límite de horas semanales sea un valor positivo."""
+        """Asegura que el límite de horas semanales sea un valor positivo."""
         if self.limite_horas_semanales <= 0:
             raise ValueError(
                 f"El límite de horas semanales para {self.nombre} debe ser mayor a cero. Valor dado: {self.limite_horas_semanales}"
             )
 
     def id_no_vacio(self):
-        """Regla 16: Asegura que el identificador del personal no esté vacío."""
+        """Asegura que el identificador del personal no esté vacío."""
         if not self.id_personal:
             raise ValueError("El identificador del personal no puede estar vacío.")
 
@@ -117,9 +117,7 @@ class AreaDeTrabajo:
     ):
         self.id_area = id_area
         self.nombre = nombre
-        # Regla 10
         self.credenciales_obligatorias = set(credenciales_obligatorias)
-        # Regla 6
         self.limite_personal_por_franja = limite_personal_por_franja
         # {(fecha, franja): set(id_personal)}
         self._personal_asignado_por_franja: Dict[tuple, Set[str]] = {}
@@ -127,7 +125,7 @@ class AreaDeTrabajo:
 
 
     def tiene_cupo_disponible(self, fecha: date, franja_horaria: FranjaHoraria, id_personal: str) -> bool:
-        """Regla 6: verifica si la franja tiene capacidad en la fecha dada."""
+        """verifica si la franja tiene capacidad en la fecha dada."""
         limite = self.limite_personal_por_franja.get(franja_horaria, 0)
         personal_actual = self._personal_asignado_por_franja.get((fecha, franja_horaria), set())
         if id_personal in personal_actual:
@@ -141,7 +139,7 @@ class AreaDeTrabajo:
         self._personal_asignado_por_franja[clave].add(id_personal)
 
     def validar_limite_personal_por_franja(self):
-        """Regla 17: Asegura que los límites de personal por franja sean positivos."""
+        """Asegura que los límites de personal por franja sean positivos."""
         for franja, limite in self.limite_personal_por_franja.items():
             if limite < 0:
                 raise ValueError(
@@ -150,7 +148,7 @@ class AreaDeTrabajo:
 
 
 class Labor:
-    """Regla 3: una labor con su duración, requisitos y el área donde se realiza."""
+    """Una labor con su duración, requisitos y el área donde se realiza."""
 
     def __init__(
         self,
@@ -174,19 +172,19 @@ class Labor:
         self.validar_duracion_horas()
 
     def validar_duracion_horas(self):
-        """Regla 7: asegura que la duración de la labor sea positiva."""
+        """Asegura que la duración de la labor sea positiva."""
         if self.duracion_horas <= 0:
             raise ValueError(
                 f"La duración de la labor {self.titulo} debe ser mayor a cero. Valor dado: {self.duracion_horas}"
             )
 
     def id_no_vacio(self):
-        """Regla 13: asegura que el identificador de la labor no esté vacío."""
+        """Asegura que el identificador de la labor no esté vacío."""
         if not self.id_labor:
             raise ValueError("El identificador de la labor no puede estar vacío.")
 
     def titulo_no_vacio(self):
-        """Regla 14: asegura que el título de la labor no esté vacío."""
+        """Asegura que el título de la labor no esté vacío."""
         if not self.titulo:
             raise ValueError("El título de la labor no puede estar vacío.")
 
@@ -212,7 +210,7 @@ class Asignacion:
         self.supervisor_aprobador: Optional[Personal] = None
 
     def formalizar(self, supervisor: Personal) -> None:
-        """Regla 8: solo un supervisor puede aprobar."""
+        """Solo un supervisor puede aprobar."""
         if not supervisor.es_supervisor:
             raise PermissionError(f"El usuario {supervisor.nombre} no tiene permisos de supervisor.")
         self.estado = EstadoAsignacion.APROBADA

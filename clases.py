@@ -70,7 +70,7 @@ class trabajador:
             self.horas_asignadas_semana + horas_nueva_trabajo
         ) > self.limite_horas_semanales
 
-    def acumular_horas(self, horas: float):
+    def sumar_horas(self, horas: float):
         """Asigna las horas de una nueva trabajo al total acumulado semanal."""
         if self.excede_limite_horas(horas):
             raise ValueError(
@@ -218,7 +218,7 @@ class trabajo:
             raise ValueError("El título de la trabajo no puede estar vacío.")
 
 
-class Asignacion:
+class SistemaAsignacion:
     """Modela el registro de asignación de una trabajo a un trabajador."""
 
     def __init__(

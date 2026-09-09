@@ -1,6 +1,7 @@
 from datetime import date
 from enum import Enum
 from typing import Dict, List, Optional, Set
+from datetime import date
 
 class FranjaHoraria(Enum):
     MANIANA = "Mañana"
@@ -15,6 +16,7 @@ class EstadoAsignacion(Enum):
 
 class Credencial:
     """Modela una credencial profesional con su período de vigencia."""
+
 
     def __init__(self, nombre: str, fecha_obtencion: date, fecha_expiracion: date):
         self.nombre = nombre

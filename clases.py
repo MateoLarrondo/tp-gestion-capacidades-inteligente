@@ -2,6 +2,16 @@ from datetime import date
 from enum import Enum
 from typing import Dict, List, Optional, Set
 
+class FranjaHoraria(Enum):
+    MANIANA = "Mañana"
+    TARDE = "Tarde"
+    NOCHE = "Noche"
+
+
+class EstadoAsignacion(Enum):
+    PENDIENTE = "Pendiente"
+    APROBADA = "Aprobada"
+
 
 class Credencial:
     """Modela una credencial profesional con su período de vigencia."""
@@ -31,19 +41,18 @@ class trabajador:
         self,
         id_trabajador: str,
         nombre: str,
+        franja_horaria: FranjaHoraria,
         habilidades: Set[str],
         credenciales: List[Credencial],
         limite_horas_semanales: float,
-        es_supervisor: bool = False,
     ):
         self.id_trabajador = id_trabajador
         self.nombre = nombre
+        self.franja_horaria = franja_horaria
         self.habilidades = set(habilidades)
-        self.credenciales = credenciales
+        self.credenciales = list(credenciales)
         self.limite_horas_semanales = limite_horas_semanales
         self.horas_asignadas_semana = 0.0
-
-        self.es_supervisor = es_supervisor
         self.id_no_vacio()
         self.limite_horas_positivo()
 
@@ -96,17 +105,6 @@ class trabajador:
             raise ValueError("El identificador del trabajador no puede estar vacío.")
 
 
-class FranjaHoraria(Enum):
-    MANIANA = "Mañana"
-    TARDE = "Tarde"
-    NOCHE = "Noche"
-
-
-class EstadoAsignacion(Enum):
-    PENDIENTE = "Pendiente"
-    APROBADA = "Aprobada"
-
-
 class AreaDeTrabajo:
     """Modela un área de trabajo con sus credenciales obligatorias y cupos por franja."""
 
@@ -121,7 +119,7 @@ class AreaDeTrabajo:
         self.nombre = nombre
         self.credenciales_obligatorias = set(credenciales_obligatorias)
         self.limite_trabajador_por_franja = limite_trabajador_por_franja
-        self._trabajador_asignado_por_franja: Dict[tuple, Set[str]] = {}
+        self._trabajador_asignado_por_franja_por_fecha: Dict[tuple[date, FranjaHoraria], int] = {}
         self.validar_limite_trabajador_por_franja()
 
     def tiene_cupo_disponible(
@@ -129,7 +127,7 @@ class AreaDeTrabajo:
     ) -> bool:
         """Verifica si la franja tiene capacidad en la fecha dada."""
         limite = self.limite_trabajador_por_franja.get(franja_horaria, 0)
-        trabajador_actual = self._trabajador_asignado_por_franja.get(
+        trabajador_actual = self._trabajador_asignado_por_franja_por_fecha.get(
             (fecha, franja_horaria), set()
         )
         if id_trabajador in trabajador_actual:
@@ -140,9 +138,9 @@ class AreaDeTrabajo:
         self, fecha: date, franja_horaria: FranjaHoraria, id_trabajador: str
     ) -> None:
         clave = (fecha, franja_horaria)
-        if clave not in self._trabajador_asignado_por_franja:
-            self._trabajador_asignado_por_franja[clave] = set()
-        self._trabajador_asignado_por_franja[clave].add(id_trabajador)
+        if clave not in self._trabajador_asignado_por_franja_por_fecha:
+            self._trabajador_asignado_por_franja_por_fecha[clave] = set()
+        self._trabajador_asignado_por_franja_por_fecha[clave].add(id_trabajador)
 
     def validar_limite_trabajador_por_franja(self):
         """Asegura que los límites de trabajador por franja sean positivos."""
@@ -223,15 +221,14 @@ class SistemaAsignacion:
 
     def __init__(
         self,
-        id_asignacion: str,
+        id_asignacion: int,
         trabajo: trabajo,
-        trabajador: trabajador,
         fecha: date,
         franja_horaria: FranjaHoraria,
     ):
         self.id_asignacion = id_asignacion
         self.trabajo = trabajo
-        self.trabajador = trabajador
+        self.trabajadores: set[trabajador] = set()
         self.fecha = fecha
         self.franja_horaria = franja_horaria
         self.estado = EstadoAsignacion.PENDIENTE

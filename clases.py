@@ -158,18 +158,19 @@ class Supervisor(trabajador):
         self,
         id_trabajador: str,
         nombre: str,
+        franja_horaria: FranjaHoraria,
         habilidades: Set[str],
         credenciales: List[Credencial],
         limite_horas_semanales: float,
         area_a_cargo: AreaDeTrabajo,
     ):
         super().__init__(
-            id_trabajador=id_trabajador,
-            nombre=nombre,
-            habilidades=habilidades,
-            credenciales=credenciales,
-            limite_horas_semanales=limite_horas_semanales,
-            es_supervisor=True,
+            id_trabajador = id_trabajador,
+            nombre = nombre,
+            franja_horaria = franja_horaria,
+            habilidades = habilidades,
+            credenciales = credenciales,
+            limite_horas_semanales = limite_horas_semanales,
         )
         self.area_a_cargo = area_a_cargo
 

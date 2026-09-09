@@ -105,6 +105,9 @@ class trabajador:
         """Asegura que el identificador del trabajador no esté vacío."""
         if not self.id_trabajador:
             raise ValueError("El identificador del trabajador no puede estar vacío.")
+    def tiempo_libre(self):
+        """Calcula el tiempo libre disponible del trabajador en la semana."""
+        return self.limite_horas_semanales - self.horas_asignadas_semana    
 
 
 class AreaDeTrabajo:
@@ -238,7 +241,7 @@ class SistemaAsignacion:
         self.supervisor_aprobador: Optional[Supervisor] = None
 
     def formalizar(self, supervisor: trabajador) -> None:
-        """Solo un supervisor a cargo del área de la trabajo puede aprobar."""
+        """Solo un supervisor a cargo del área del trabajo puede aprobar."""
         if not isinstance(supervisor, Supervisor):
             raise PermissionError(
                 f"El usuario {supervisor.nombre} no tiene permisos de supervisor."

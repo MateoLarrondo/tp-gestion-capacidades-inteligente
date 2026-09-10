@@ -125,6 +125,7 @@ class AreaDeTrabajo:
         self.limite_trabajador_por_franja = limite_trabajador_por_franja
         self._trabajador_asignado_por_franja_por_fecha: Dict[tuple[date, FranjaHoraria], set[str]] = {}
         self.validar_limite_trabajador_por_franja()
+        self.id_no_nulo()
 
     def tiene_cupo_disponible(
         self, fecha: date, franja_horaria: FranjaHoraria, id_trabajador: str
@@ -153,6 +154,11 @@ class AreaDeTrabajo:
                 raise ValueError(
                     f"El límite de trabajador para la franja '{franja}' en el área '{self.nombre}' debe ser mayor a cero. Valor dado: {limite}"
                 )
+
+    def id_no_nulo(self):
+        """Asegura que el identificador del área no sea nulo."""
+        if not self.id_area:
+            raise ValueError("El identificador del área de trabajo no puede ser nulo.")
 
 
 class Supervisor(Trabajador):
@@ -202,6 +208,7 @@ class Trabajo:
         self.id_no_vacio()
         self.titulo_no_vacio()
         self.validar_duracion_horas()
+        self.areatrabajo_no_nulo()
 
     def validar_duracion_horas(self):
         """Asegura que la duración de la trabajo sea positiva."""
@@ -219,6 +226,11 @@ class Trabajo:
         """Asegura que el título de la trabajo no esté vacío."""
         if not self.titulo:
             raise ValueError("El título de la trabajo no puede estar vacío.")
+
+    def areatrabajo_no_nulo(self):
+        """Asegura que el área de trabajo no sea nula."""
+        if self.area_trabajo is None:
+            raise ValueError("El área de trabajo no puede ser nula.")
 
 
 class SistemaAsignacion:

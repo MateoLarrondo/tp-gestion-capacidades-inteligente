@@ -1,7 +1,6 @@
 from datetime import date
 from enum import Enum
 from typing import Dict, List, Optional, Set
-from datetime import date
 
 class FranjaHoraria(Enum):
     MANIANA = "Mañana"
@@ -36,7 +35,7 @@ class Credencial:
             )
 
 
-class trabajador:
+class Trabajador:
     """Modela al trabajador, sus competencias, horas acumuladas y rol."""
 
     def __init__(
@@ -124,7 +123,7 @@ class AreaDeTrabajo:
         self.nombre = nombre
         self.credenciales_obligatorias = set(credenciales_obligatorias)
         self.limite_trabajador_por_franja = limite_trabajador_por_franja
-        self._trabajador_asignado_por_franja_por_fecha: Dict[tuple[date, FranjaHoraria], int] = {}
+        self._trabajador_asignado_por_franja_por_fecha: Dict[tuple[date, FranjaHoraria], set[str]] = {}
         self.validar_limite_trabajador_por_franja()
 
     def tiene_cupo_disponible(
@@ -141,7 +140,7 @@ class AreaDeTrabajo:
 
     def registrar_trabajador_en_franja(
         self, fecha: date, franja_horaria: FranjaHoraria, id_trabajador: str
-    ) -> None:
+    ):
         clave = (fecha, franja_horaria)
         if clave not in self._trabajador_asignado_por_franja_por_fecha:
             self._trabajador_asignado_por_franja_por_fecha[clave] = set()
@@ -150,13 +149,13 @@ class AreaDeTrabajo:
     def validar_limite_trabajador_por_franja(self):
         """Asegura que los límites de trabajador por franja sean positivos."""
         for franja, limite in self.limite_trabajador_por_franja.items():
-            if limite < 0:
+            if limite <= 0:
                 raise ValueError(
                     f"El límite de trabajador para la franja '{franja}' en el área '{self.nombre}' debe ser mayor a cero. Valor dado: {limite}"
                 )
 
 
-class Supervisor(trabajador):
+class Supervisor(Trabajador):
     """trabajador con facultades para formalizar asignaciones pertenecientes a su área."""
 
     def __init__(
@@ -180,7 +179,7 @@ class Supervisor(trabajador):
         self.area_a_cargo = area_a_cargo
 
 
-class trabajo:
+class Trabajo:
     """Una trabajo con su duración, requisitos y el área donde se realiza."""
 
     def __init__(
@@ -228,19 +227,19 @@ class SistemaAsignacion:
     def __init__(
         self,
         id_asignacion: int,
-        trabajo: trabajo,
+        trabajo: Trabajo,
         fecha: date,
         franja_horaria: FranjaHoraria,
     ):
         self.id_asignacion = id_asignacion
         self.trabajo = trabajo
-        self.trabajadores: set[trabajador] = set()
+        self.trabajadores: set[Trabajador] = set()
         self.fecha = fecha
         self.franja_horaria = franja_horaria
         self.estado = EstadoAsignacion.PENDIENTE
         self.supervisor_aprobador: Optional[Supervisor] = None
 
-    def formalizar(self, supervisor: trabajador) -> None:
+    def formalizar(self, supervisor: Trabajador) -> None:
         """Solo un supervisor a cargo del área del trabajo puede aprobar."""
         if not isinstance(supervisor, Supervisor):
             raise PermissionError(

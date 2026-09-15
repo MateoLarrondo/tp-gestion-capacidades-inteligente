@@ -1,5 +1,13 @@
 import clases as c
 import json
+import datetime
+def pedir_fecha(mensaje):
+    while True:
+        entrada = input(mensaje)
+        try:
+            return datetime.strptime(entrada, "%Y-%m-%d").date()
+        except ValueError:
+            print("Error: Formato inválido. Asegúrate de usar AAAA-MM-DD con una fecha real.\n")
 def solicitar_rol():
     while True:
         rol = input("Ingrese el rol que desea utilizar: ")
@@ -56,13 +64,15 @@ def gestion():
             limite_horas_semanales=limite_horas_semanales,
             area_a_cargo=area_a_cargo
         )
-        ###########deberia guardar el supervisor en un archivo json
+        #   deberia guardar el supervisor en un archivo json
         ### with open("supervisores.json", "w") as f:
         ###    json.dump(supervisor.__dict__, f)
     elif opcion == "3":
         nombre_credencial = input("Ingrese el nombre de la credencial: ")
-        fecha_obtencion = input("Ingrese la fecha de obtención de la credencial (YYYY-MM-DD): ")
-        fecha_vencimiento = input("Ingrese la fecha de vencimiento de la credencial (YYYY-MM-DD): ")
+        fecha_obtencion = pedir_fecha("Ingrese la fecha de obtención de la credencial (YYYY-MM-DD): ")
+        fecha_vencimiento = pedir_fecha("Ingrese la fecha de vencimiento de la credencial (YYYY-MM-DD): ")
+        
+
         credencial = c.Credencial(nombre_credencial,fecha_obtencion, fecha_vencimiento)
 
     elif opcion == "4":

@@ -1,18 +1,23 @@
-import enums as e
 from datetime import date
-import credencial as c
 from typing import List, Set
+
+from enums import FranjaHoraria
+from credencial import Credencial
+
 
 class Trabajador:
     """Modela al trabajador, sus competencias, horas acumuladas y rol."""
+
+    # NUEVO: registro de todos los trabajadores creados (incluye supervisores)
+    _registro: List["Trabajador"] = []
 
     def __init__(
         self,
         id_trabajador: str,
         nombre: str,
-        franja_horaria: e.FranjaHoraria,
+        franja_horaria: FranjaHoraria,
         habilidades: Set[str],
-        credenciales: List[c.Credencial],
+        credenciales: List[Credencial],
         limite_horas_semanales: float,
     ):
         self.id_trabajador = id_trabajador
@@ -22,8 +27,12 @@ class Trabajador:
         self.credenciales = list(credenciales)
         self.limite_horas_semanales = limite_horas_semanales
         self.horas_asignadas_semana = 0.0
+        # NUEVO: (fecha, franja) en las que ya tiene una asignación aprobada
+        self._franjas_ocupadas: Set[tuple[date, FranjaHoraria]] = set()
         self.id_no_vacio()
         self.limite_horas_positivo()
+        # NUEVO: se registra solo si pasó las validaciones
+        Trabajador._registro.append(self)
 
     def obtener_credenciales_activas(self, fecha_consulta: date):
         """Devuelve el conjunto de nombres de credenciales vigentes a la fecha dada."""
@@ -77,3 +86,27 @@ class Trabajador:
         """Calcula el tiempo libre disponible del trabajador en la semana."""
         return self.limite_horas_semanales - self.horas_asignadas_semana
 
+    # ---------- NUEVO: disponibilidad ----------
+
+    def esta_ocupado(self, franja_horaria: FranjaHoraria, fecha: date) -> bool:
+        """Indica si ya tiene una asignación aprobada en esa franja y fecha."""
+        return (fecha, franja_horaria) in self._franjas_ocupadas
+
+    def registrar_ocupacion(self, franja_horaria: FranjaHoraria, fecha: date) -> None:
+        """Marca la franja y fecha como ocupadas."""
+        self._franjas_ocupadas.add((fecha, franja_horaria))
+
+    def esta_disponible(self, franja_horaria: FranjaHoraria, fecha: date) -> bool:
+        """Disponible = trabaja en esa franja, no está ocupado y le quedan horas."""
+        return (
+            self.franja_horaria == franja_horaria
+            and not self.esta_ocupado(franja_horaria, fecha)
+            and self.tiempo_libre() > 0
+        )
+
+    @classmethod
+    def disponibles_en(cls, franja_horaria: FranjaHoraria, fecha: date) -> List["Trabajador"]:
+        """Devuelve los trabajadores disponibles en la franja y fecha dadas."""
+        return [
+            t for t in cls._registro if t.esta_disponible(franja_horaria, fecha)
+        ]

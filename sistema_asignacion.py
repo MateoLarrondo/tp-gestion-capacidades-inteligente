@@ -1,9 +1,11 @@
-from trabajador import Trabajador
-from trabajo import Trabajo
-from supervisor import Supervisor
-from enums import FranjaHoraria, EstadoAsignacion
 from datetime import date
 from typing import Optional
+
+from enums import FranjaHoraria, EstadoAsignacion
+from trabajador import Trabajador
+from supervisor import Supervisor
+from trabajo import Trabajo
+
 
 class SistemaAsignacion:
     """Modela el registro de asignación de una trabajo a un trabajador."""
@@ -23,6 +25,17 @@ class SistemaAsignacion:
         self.estado = EstadoAsignacion.PENDIENTE
         self.supervisor_aprobador: Optional[Supervisor] = None
 
+    # NUEVO: forma de sumar trabajadores a la asignación
+    def agregar_trabajador(self, trabajador: Trabajador) -> None:
+        """Agrega un trabajador si está disponible en la franja y fecha de la asignación."""
+        if self.estado == EstadoAsignacion.APROBADA:
+            raise ValueError("No se pueden agregar trabajadores a una asignación aprobada.")
+        if not trabajador.esta_disponible(self.franja_horaria, self.fecha):
+            raise ValueError(
+                f"{trabajador.nombre} no está disponible el {self.fecha} en la franja {self.franja_horaria.value}."
+            )
+        self.trabajadores.add(trabajador)
+
     def formalizar(self, supervisor: Trabajador) -> None:
         """Solo un supervisor a cargo del área del trabajo puede aprobar."""
         if self.estado == EstadoAsignacion.APROBADA:
@@ -41,27 +54,27 @@ class SistemaAsignacion:
                 f"El supervisor {supervisor.nombre} no pertenece al área '{self.trabajo.area_trabajo.nombre}'."
             )
 
-        area = self.trabajo.area_trabajo
-        ocupados = area._trabajador_asignado_por_franja_por_fecha.get(
-            (self.fecha, self.franja_horaria), set()
-        )
-        ids_nuevos = {trabajador.id_trabajador for trabajador in self.trabajadores}
-        limite = area.limite_trabajador_por_franja.get(self.franja_horaria, 0)
-
-        if len(ocupados | ids_nuevos) > limite:
-            raise ValueError(
-                f"No hay cupo disponible en la franja {self.franja_horaria.value} para la fecha {self.fecha}."
-            )
-
         for trabajador in self.trabajadores:
+            # NUEVO: se vuelve a chequear por si se ocupó después de agregarlo
+            if not trabajador.esta_disponible(self.franja_horaria, self.fecha):
+                raise ValueError(
+                    f"{trabajador.nombre} ya no está disponible en la franja asignada."
+                )
             if trabajador.excede_limite_horas(self.trabajo.duracion_horas):
                 raise ValueError(
                     f"La asignación supera el límite semanal de {trabajador.nombre}."
                 )
+            if not self.trabajo.area_trabajo.tiene_cupo_disponible(
+                self.fecha, self.franja_horaria, trabajador.id_trabajador
+            ):
+                raise ValueError(
+                    f"No hay cupo disponible para {trabajador.nombre} en la franja asignada."
+                )
 
         for trabajador in self.trabajadores:
             trabajador.sumar_horas(self.trabajo.duracion_horas)
-            area.registrar_trabajador_en_franja(
+            trabajador.registrar_ocupacion(self.franja_horaria, self.fecha)  # NUEVO
+            self.trabajo.area_trabajo.registrar_trabajador_en_franja(
                 self.fecha, self.franja_horaria, trabajador.id_trabajador
             )
 

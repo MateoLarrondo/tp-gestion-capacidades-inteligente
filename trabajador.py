@@ -4,13 +4,14 @@ from typing import Dict, List, Set
 from enums import FranjaHoraria
 from credencial import Credencial
 from trabajo import Trabajo
+from sistema_registro import sistema_registro
 
 
 class Trabajador:
     """Modela al trabajador, sus competencias, horas acumuladas y rol."""
 
     # NUEVO: registro de todos los trabajadores creados (incluye supervisores)
-    _registro: List["Trabajador"] = []
+    registro = sistema_registro()
 
     def __init__(
         self,
@@ -35,7 +36,7 @@ class Trabajador:
         self.id_no_vacio()
         self.limite_horas_positivo()
         # NUEVO: se registra solo si pasó las validaciones
-        Trabajador._registro.append(self)
+        Trabajador.registro.registrar_trabajador(self)
 
     @classmethod
     def registrar_personal(
@@ -46,11 +47,11 @@ class Trabajador:
         habilidades: Set[str],
         limite_horas_semanales: float,
         **atributos,
-    ) -> "Trabajador":
+    ):
         """Registra un nuevo trabajador aceptando atributos opcionales variables según
         el rol (idiomas, área de origen, turno preferido, certificaciones iniciales, etc.)
         sin declarar un parámetro nuevo por cada uno; quedan disponibles en atributos_opcionales."""
-        trabajador = cls(id_trabajador, nombre, franja_horaria, habilidades, [], limite_horas_semanales)
+        trabajador = Trabajador(id_trabajador, nombre, franja_horaria, habilidades, [], limite_horas_semanales)
         trabajador.atributos_opcionales = dict(atributos)
         return trabajador
 
@@ -91,9 +92,9 @@ class Trabajador:
         self.horas_asignadas_semana = 0.0
 
     @classmethod
-    def reiniciar_semana_todos(cls) -> None:
+    def reiniciar_semana_todos(cls):
         """Reestablece a cero la carga horaria de todo el personal registrado (regla 12)."""
-        for t in cls._registro:
+        for t in cls.registro.trabajadores:
             t.reiniciar_semana()
 
     def limite_horas_positivo(self):
@@ -114,15 +115,15 @@ class Trabajador:
 
     # ---------- NUEVO: disponibilidad ----------
 
-    def esta_ocupado(self, franja_horaria: FranjaHoraria, fecha: date) -> bool:
+    def esta_ocupado(self, franja_horaria: FranjaHoraria, fecha: date):
         """Indica si ya tiene una asignación aprobada en esa franja y fecha."""
         return (fecha, franja_horaria) in self._franjas_ocupadas
 
-    def registrar_ocupacion(self, franja_horaria: FranjaHoraria, fecha: date) -> None:
+    def registrar_ocupacion(self, franja_horaria: FranjaHoraria, fecha: date):
         """Marca la franja y fecha como ocupadas."""
         self._franjas_ocupadas.add((fecha, franja_horaria))
 
-    def esta_disponible(self, franja_horaria: FranjaHoraria, fecha: date) -> bool:
+    def esta_disponible(self, franja_horaria: FranjaHoraria, fecha: date):
         """Disponible = trabaja en esa franja, no está ocupado y le quedan horas."""
         return (
             self.franja_horaria == franja_horaria
@@ -133,13 +134,13 @@ class Trabajador:
     @classmethod
     def disponibles_en(
         cls, trabajo: Trabajo, fecha: date, franja_horaria: FranjaHoraria
-    ) -> List["Trabajador"]:
+    ):
         """Devuelve los trabajadores disponibles para una labor, franja y fecha dadas (regla 11):
         con habilidades y credenciales activas (de la labor y del área), que no excedan su límite
         de horas semanales y para los que la franja del área aún tenga cupo."""
         area = trabajo.area_trabajo
         disponibles = []
-        for t in cls._registro:
+        for t in cls.registro.trabajadores:
             if not t.esta_disponible(franja_horaria, fecha):
                 continue
             if not t.tiene_habilidades(trabajo.habilidades_requeridas):

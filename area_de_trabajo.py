@@ -22,7 +22,7 @@ class AreaDeTrabajo:
 
     def tiene_cupo_disponible(
         self, fecha: date, franja_horaria: FranjaHoraria, id_trabajador: str
-    ) -> bool:
+    ):
         """Verifica si la franja tiene capacidad en la fecha dada."""
         limite = self.limite_trabajador_por_franja.get(franja_horaria, 0)
         trabajador_actual = self._trabajador_asignado_por_franja_por_fecha.get(

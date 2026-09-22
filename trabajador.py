@@ -1,5 +1,5 @@
 from datetime import date
-from typing import List, Set
+from typing import Dict, List, Set
 
 from enums import FranjaHoraria
 from credencial import Credencial
@@ -30,10 +30,29 @@ class Trabajador:
         self.horas_asignadas_semana = 0.0
         # NUEVO: (fecha, franja) en las que ya tiene una asignación aprobada
         self._franjas_ocupadas: Set[tuple[date, FranjaHoraria]] = set()
+        # atributos variables por rol (idiomas, área de origen, turno preferido, etc.)
+        self.atributos_opcionales: Dict[str, object] = {}
         self.id_no_vacio()
         self.limite_horas_positivo()
         # NUEVO: se registra solo si pasó las validaciones
         Trabajador._registro.append(self)
+
+    @classmethod
+    def registrar_personal(
+        cls,
+        id_trabajador: str,
+        nombre: str,
+        franja_horaria: FranjaHoraria,
+        habilidades: Set[str],
+        limite_horas_semanales: float,
+        **atributos,
+    ) -> "Trabajador":
+        """Registra un nuevo trabajador aceptando atributos opcionales variables según
+        el rol (idiomas, área de origen, turno preferido, certificaciones iniciales, etc.)
+        sin declarar un parámetro nuevo por cada uno; quedan disponibles en atributos_opcionales."""
+        trabajador = cls(id_trabajador, nombre, franja_horaria, habilidades, [], limite_horas_semanales)
+        trabajador.atributos_opcionales = dict(atributos)
+        return trabajador
 
     def obtener_credenciales_activas(self, fecha_consulta: date):
         """Devuelve el conjunto de nombres de credenciales vigentes a la fecha dada."""

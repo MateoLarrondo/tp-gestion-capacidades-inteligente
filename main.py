@@ -14,6 +14,22 @@ def pedir_fecha(mensaje):
             return datetime.datetime.strptime(entrada, "%Y-%m-%d").date()
         except ValueError:
             print("Error: Formato inválido. Asegúrate de usar AAAA-MM-DD con una fecha real.\n")
+
+def pedir_atributos_opcionales():
+    """Pide atributos opcionales del personal como pares clave=valor (idiomas, área
+    de origen, turno preferido, certificaciones iniciales, etc.) para pasarlos como
+    **kwargs a Trabajador.registrar_personal()."""
+    atributos = {}
+    entrada = input(
+        "Ingrese atributos opcionales como clave=valor separados por comas "
+        "(ej: idioma=Ingles,area_origen=Mecanica) o deje vacío: "
+    )
+    for par in entrada.split(","):
+        if "=" in par:
+            clave, valor = par.split("=", 1)
+            atributos[clave.strip()] = valor.strip()
+    return atributos
+
 def solicitar_rol():
     while True:
         rol = input("Ingrese el rol que desea utilizar: ")
@@ -42,13 +58,14 @@ def gestion():
         franja_horaria = input("Ingrese la franja horaria (Mañana/Tarde/Noche): ")
         habilidades = input("Ingrese las habilidades separadas por comas: ").split(",")
         limite_horas_semanales = float(input("Ingrese el límite de horas semanales(menor o igual a 40): "))
-        trabajador = Trabajador(
-            id_trabajador=id_trabajador,
-            nombre=nombre,
-            franja_horaria=FranjaHoraria(franja_horaria),
-            habilidades=habilidades,
-            credenciales=[],
-            limite_horas_semanales=limite_horas_semanales
+        atributos_opcionales = pedir_atributos_opcionales()
+        trabajador = Trabajador.registrar_personal(
+            id_trabajador,
+            nombre,
+            FranjaHoraria(franja_horaria),
+            habilidades,
+            limite_horas_semanales,
+            **atributos_opcionales,
         )
         ###########deberia guardar el trabajador en un archivo json
         ### with open("trabajadores.json", "w") as f:

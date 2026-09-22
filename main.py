@@ -1,11 +1,17 @@
-import clases as c
 import json
 import datetime
+
+from enums import FranjaHoraria
+from trabajador import Trabajador
+from supervisor import Supervisor
+from credencial import Credencial
+
+
 def pedir_fecha(mensaje):
     while True:
         entrada = input(mensaje)
         try:
-            return datetime.strptime(entrada, "%Y-%m-%d").date()
+            return datetime.datetime.strptime(entrada, "%Y-%m-%d").date()
         except ValueError:
             print("Error: Formato inválido. Asegúrate de usar AAAA-MM-DD con una fecha real.\n")
 def solicitar_rol():
@@ -36,10 +42,10 @@ def gestion():
         franja_horaria = input("Ingrese la franja horaria (Mañana/Tarde/Noche): ")
         habilidades = input("Ingrese las habilidades separadas por comas: ").split(",")
         limite_horas_semanales = float(input("Ingrese el límite de horas semanales(menor o igual a 40): "))
-        trabajador = c.trabajador(
+        trabajador = Trabajador(
             id_trabajador=id_trabajador,
             nombre=nombre,
-            franja_horaria=c.FranjaHoraria(franja_horaria),
+            franja_horaria=FranjaHoraria(franja_horaria),
             habilidades=habilidades,
             credenciales=[],
             limite_horas_semanales=limite_horas_semanales
@@ -55,10 +61,10 @@ def gestion():
         habilidades = input("Ingrese las habilidades separadas por comas: ").split(",")
         limite_horas_semanales = float(input("Ingrese el límite de horas semanales(menor o igual a 40): "))
         area_a_cargo = input("Ingrese el área a cargo del supervisor: ")
-        supervisor = c.Supervisor(
+        supervisor = Supervisor(
             id_trabajador=id_trabajador,
             nombre=nombre,
-            franja_horaria=c.FranjaHoraria(franja_horaria),
+            franja_horaria=FranjaHoraria(franja_horaria),
             habilidades=habilidades,
             credenciales=[],
             limite_horas_semanales=limite_horas_semanales,
@@ -73,7 +79,7 @@ def gestion():
         fecha_vencimiento = pedir_fecha("Ingrese la fecha de vencimiento de la credencial (YYYY-MM-DD): ")
         
 
-        credencial = c.Credencial(nombre_credencial,fecha_obtencion, fecha_vencimiento)
+        credencial = Credencial(nombre_credencial,fecha_obtencion, fecha_vencimiento)
 
     elif opcion == "4":
             "s"
@@ -87,7 +93,7 @@ def solicitar_opcion_gestion():
          opcion = input("Ingrese la opcion que desea elegir: ")
          if opcion in ("1","2","3","4","5","6"):
              return opcion
-         print("Opcion invalida. Por favor seleccione 1, 2 o 3")
+         print("Opcion invalida. Por favor seleccione una opcion entre 1 y 6")
 
 def supervisor():
     print("Ha seleccionado el rol de supervisor.")

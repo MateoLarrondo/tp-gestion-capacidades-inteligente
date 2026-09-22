@@ -3,6 +3,7 @@ from typing import List, Set
 
 from enums import FranjaHoraria
 from credencial import Credencial
+from trabajo import Trabajo
 
 
 class Trabajador:
@@ -70,6 +71,12 @@ class Trabajador:
         """Restablece la contabilidad de horas al inicio de un nuevo ciclo."""
         self.horas_asignadas_semana = 0.0
 
+    @classmethod
+    def reiniciar_semana_todos(cls) -> None:
+        """Reestablece a cero la carga horaria de todo el personal registrado (regla 12)."""
+        for t in cls._registro:
+            t.reiniciar_semana()
+
     def limite_horas_positivo(self):
         """Asegura que el límite de horas semanales sea un valor positivo."""
         if self.limite_horas_semanales <= 0:
@@ -105,8 +112,26 @@ class Trabajador:
         )
 
     @classmethod
-    def disponibles_en(cls, franja_horaria: FranjaHoraria, fecha: date) -> List["Trabajador"]:
-        """Devuelve los trabajadores disponibles en la franja y fecha dadas."""
-        return [
-            t for t in cls._registro if t.esta_disponible(franja_horaria, fecha)
-        ]
+    def disponibles_en(
+        cls, trabajo: Trabajo, fecha: date, franja_horaria: FranjaHoraria
+    ) -> List["Trabajador"]:
+        """Devuelve los trabajadores disponibles para una labor, franja y fecha dadas (regla 11):
+        con habilidades y credenciales activas (de la labor y del área), que no excedan su límite
+        de horas semanales y para los que la franja del área aún tenga cupo."""
+        area = trabajo.area_trabajo
+        disponibles = []
+        for t in cls._registro:
+            if not t.esta_disponible(franja_horaria, fecha):
+                continue
+            if not t.tiene_habilidades(trabajo.habilidades_requeridas):
+                continue
+            if not t.tiene_credenciales_activas(trabajo.credenciales_requeridas, fecha):
+                continue
+            if not t.tiene_credenciales_activas(area.credenciales_obligatorias, fecha):
+                continue
+            if t.excede_limite_horas(trabajo.duracion_horas):
+                continue
+            if not area.tiene_cupo_disponible(fecha, franja_horaria, t.id_trabajador):
+                continue
+            disponibles.append(t)
+        return disponibles

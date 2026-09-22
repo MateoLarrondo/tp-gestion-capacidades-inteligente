@@ -1,0 +1,97 @@
+{
+  "areas": [
+    {
+      "id_area": "A1",
+      "nombre": "Taller de Soldadura",
+      "credenciales_obligatorias": ["Seguridad Industrial"],
+      "limite_trabajador_por_franja": {"MANIANA": 2, "TARDE": 2}
+    },
+    {
+      "id_area": "A2",
+      "nombre": "Depósito",
+      "credenciales_obligatorias": ["Manejo de Autoelevador"],
+      "limite_trabajador_por_franja": {"MANIANA": 1, "NOCHE": 2}
+    }
+  ],
+
+  "trabajadores": [
+    {
+      "id_trabajador": "T1",
+      "nombre": "Ana Gómez",
+      "franja_horaria": "MANIANA",
+      "habilidades": ["soldadura", "lectura de planos"],
+      "credenciales": [
+        {"nombre": "Seguridad Industrial", "fecha_obtencion": "2025-01-10", "fecha_expiracion": "2027-01-10"},
+        {"nombre": "Soldadura Certificada", "fecha_obtencion": "2024-06-01", "fecha_expiracion": "2026-12-31"}
+      ],
+      "limite_horas_semanales": 40,
+      "area_a_cargo": null
+    },
+    {
+      "id_trabajador": "T2",
+      "nombre": "Bruno Díaz",
+      "franja_horaria": "TARDE",
+      "habilidades": ["soldadura"],
+      "credenciales": [
+        {"nombre": "Seguridad Industrial", "fecha_obtencion": "2023-03-01", "fecha_expiracion": "2025-03-01"}
+      ],
+      "limite_horas_semanales": 40,
+      "area_a_cargo": null
+    },
+    {
+      "id_trabajador": "T3",
+      "nombre": "Carla Ruiz",
+      "franja_horaria": "NOCHE",
+      "habilidades": ["manejo de autoelevador", "inventario"],
+      "credenciales": [
+        {"nombre": "Manejo de Autoelevador", "fecha_obtencion": "2025-05-15", "fecha_expiracion": "2028-05-15"}
+      ],
+      "limite_horas_semanales": 10,
+      "area_a_cargo": null
+    },
+    {
+      "id_trabajador": "T4",
+      "nombre": "Diego Fernández",
+      "franja_horaria": "MANIANA",
+      "habilidades": ["soldadura", "lectura de planos"],
+      "credenciales": [
+        {"nombre": "Seguridad Industrial", "fecha_obtencion": "2024-02-01", "fecha_expiracion": "2027-02-01"}
+      ],
+      "limite_horas_semanales": 45,
+      "area_a_cargo": "A1"
+    },
+    {
+      "id_trabajador": "T5",
+      "nombre": "Elena Sosa",
+      "franja_horaria": "MANIANA",
+      "habilidades": ["inventario"],
+      "credenciales": [
+        {"nombre": "Manejo de Autoelevador", "fecha_obtencion": "2025-08-01", "fecha_expiracion": "2027-08-01"},
+        {"nombre": "Seguridad Industrial", "fecha_obtencion": "2025-08-01", "fecha_expiracion": "2027-08-01"}
+      ],
+      "limite_horas_semanales": 45,
+      "area_a_cargo": "A2"
+    }
+  ],
+
+  "trabajos": [
+    {
+      "id_trabajo": "J1",
+      "titulo": "Reparación de estructura",
+      "descripcion": "Soldar refuerzos en la estructura de la línea 2",
+      "duracion_horas": 8,
+      "habilidades_requeridas": ["soldadura"],
+      "credenciales_requeridas": ["Seguridad Industrial", "Soldadura Certificada"],
+      "area_trabajo": "A1"
+    },
+    {
+      "id_trabajo": "J2",
+      "titulo": "Control de stock",
+      "descripcion": "Recuento de pallets del depósito",
+      "duracion_horas": 12,
+      "habilidades_requeridas": ["inventario"],
+      "credenciales_requeridas": ["Manejo de Autoelevador"],
+      "area_trabajo": "A2"
+    }
+  ]
+}

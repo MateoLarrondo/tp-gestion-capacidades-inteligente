@@ -4,13 +4,13 @@
       "id_area": "A1",
       "nombre": "Taller de Soldadura",
       "credenciales_obligatorias": ["Seguridad Industrial"],
-      "limite_trabajador_por_franja": {"MANIANA": 2, "TARDE": 2}
+      "limite_trabajador_por_franja": {"Mañana": 2, "Tarde": 2}
     },
     {
       "id_area": "A2",
       "nombre": "Depósito",
       "credenciales_obligatorias": ["Manejo de Autoelevador"],
-      "limite_trabajador_por_franja": {"MANIANA": 1, "NOCHE": 2}
+      "limite_trabajador_por_franja": {"Mañana": 1, "Noche": 2}
     }
   ],
 
@@ -18,7 +18,7 @@
     {
       "id_trabajador": "T1",
       "nombre": "Ana Gómez",
-      "franja_horaria": "MANIANA",
+      "franja_horaria": "Mañana",
       "habilidades": ["soldadura", "lectura de planos"],
       "credenciales": [
         {"nombre": "Seguridad Industrial", "fecha_obtencion": "2025-01-10", "fecha_expiracion": "2027-01-10"},
@@ -30,7 +30,7 @@
     {
       "id_trabajador": "T2",
       "nombre": "Bruno Díaz",
-      "franja_horaria": "TARDE",
+      "franja_horaria": "Tarde",
       "habilidades": ["soldadura"],
       "credenciales": [
         {"nombre": "Seguridad Industrial", "fecha_obtencion": "2023-03-01", "fecha_expiracion": "2025-03-01"}
@@ -41,7 +41,7 @@
     {
       "id_trabajador": "T3",
       "nombre": "Carla Ruiz",
-      "franja_horaria": "NOCHE",
+      "franja_horaria": "Noche",
       "habilidades": ["manejo de autoelevador", "inventario"],
       "credenciales": [
         {"nombre": "Manejo de Autoelevador", "fecha_obtencion": "2025-05-15", "fecha_expiracion": "2028-05-15"}
@@ -52,7 +52,7 @@
     {
       "id_trabajador": "T4",
       "nombre": "Diego Fernández",
-      "franja_horaria": "MANIANA",
+      "franja_horaria": "Mañana",
       "habilidades": ["soldadura", "lectura de planos"],
       "credenciales": [
         {"nombre": "Seguridad Industrial", "fecha_obtencion": "2024-02-01", "fecha_expiracion": "2027-02-01"}
@@ -63,7 +63,7 @@
     {
       "id_trabajador": "T5",
       "nombre": "Elena Sosa",
-      "franja_horaria": "MANIANA",
+      "franja_horaria": "Mañana",
       "habilidades": ["inventario"],
       "credenciales": [
         {"nombre": "Manejo de Autoelevador", "fecha_obtencion": "2025-08-01", "fecha_expiracion": "2027-08-01"},

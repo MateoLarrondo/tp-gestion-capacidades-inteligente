@@ -2,6 +2,7 @@ import json
 import datetime
 
 from enums import FranjaHoraria
+from area_de_trabajo import AreaDeTrabajo
 from trabajador import Trabajador
 from supervisor import Supervisor
 from credencial import Credencial
@@ -85,7 +86,7 @@ def gestion():
             habilidades=habilidades,
             credenciales=[],
             limite_horas_semanales=limite_horas_semanales,
-            area_a_cargo=area_a_cargo
+            area_a_cargo=AreaDeTrabajo(area_a_cargo)
         )
         #   deberia guardar el supervisor en un archivo json
         ### with open("supervisores.json", "w") as f:
@@ -103,6 +104,8 @@ def gestion():
     elif opcion == "5":
             "s"
     elif opcion == "6":
+            "s"
+    elif opcion == "7":
             "s"
 
 def solicitar_opcion_gestion():
@@ -135,19 +138,22 @@ def solicitar_opcion():
          return opcion
      print("Opcion invalida. Por favor seleccione 1, 2 o 3")
 
-
+activo = True
 def main():
-    print("----------------------MENU SISTEMA DE ASIGNACION DE TRABAJADORES----------------------")
-    print("----------------------          QUE ROL DESEA UTILIZAR          ----------------------")
-    print("----------------------           1. Rol de Supervisor           ----------------------")
-    print("----------------------           2. Rol de Gestion           ----------------------")
+        while activo:
+            print("----------------------MENU SISTEMA DE ASIGNACION DE TRABAJADORES----------------------")
+            print("----------------------          QUE ROL DESEA UTILIZAR          ----------------------")
+            print("----------------------           1. Rol de Supervisor           ----------------------")
+            print("----------------------           2. Rol de Gestion           ----------------------")
 
-    rol = solicitar_rol()
+            rol = solicitar_rol()
 
-    if rol == "1":
-        supervisor()
-    elif rol == "2":
-        gestion()
+            if rol == "1":
+                supervisor()
+            elif rol == "2":
+                gestion()
+            else:
+                activo = False
 
 main()
 

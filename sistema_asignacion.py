@@ -92,7 +92,7 @@ class SistemaAsignacion:
                 f"El usuario {supervisor.nombre} no tiene permisos de supervisor."
             )
 
-        if supervisor.area_a_cargo != self.trabajo.area_trabajo:
+        if supervisor.area_a_cargo != self.trabajo.area_trabajo.id_area:
             raise PermissionError(
                 f"El supervisor {supervisor.nombre} no pertenece al área '{self.trabajo.area_trabajo.nombre}'."
             )

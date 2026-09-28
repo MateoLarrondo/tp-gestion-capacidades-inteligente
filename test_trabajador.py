@@ -5,6 +5,8 @@ from unittest.mock import Mock, patch
 from enums import FranjaHoraria as F
 from credencial import Credencial
 from trabajador import Trabajador
+from supervisor import Supervisor
+from area_de_trabajo import AreaDeTrabajo
 
 
 FECHA = date(2026, 9, 16)
@@ -22,10 +24,13 @@ class TestTrabajador(unittest.TestCase):
 
     def setUp(self):
         Trabajador.registro.trabajadores.clear()
+        AreaDeTrabajo.registro.areas.clear()
+        AreaDeTrabajo("A1", "Taller", set(), {F.TARDE: 2})
         self.trabajador = Trabajador("W1", "Nico", F.MANIANA, {"Redes", "Soldadura"}, [], 40)
 
     def tearDown(self):
         Trabajador.registro.trabajadores.clear()
+        AreaDeTrabajo.registro.areas.clear()
 
     # ---------- __init__ ----------
 
@@ -46,7 +51,32 @@ class TestTrabajador(unittest.TestCase):
 
         self.assertEqual(Trabajador.registro.trabajadores, [self.trabajador])
 
+    def test_init_rechaza_id_repetido(self):
+        with self.assertRaises(ValueError):
+            Trabajador("W1", "Ana", F.TARDE, set(), [], 30)
+
+        self.assertEqual(Trabajador.registro.trabajadores, [self.trabajador])
+
     # ---------- registrar_personal ----------
+
+    def test_registrar_personal_desde_supervisor_devuelve_un_supervisor(self):
+        supervisor = Supervisor.registrar_personal("S1", "Laura", F.TARDE, set(), 30, "A1", idioma="Ingles")
+
+        self.assertIsInstance(supervisor, Supervisor)
+        self.assertEqual(supervisor.area_a_cargo, "A1")
+        self.assertEqual(supervisor.atributos_opcionales, {"idioma": "Ingles"})
+
+    def test_supervisor_sin_area_no_queda_en_el_registro(self):
+        with self.assertRaises(ValueError):
+            Supervisor("S1", "Laura", F.TARDE, set(), [], 30, "")
+
+        self.assertEqual(Trabajador.registro.trabajadores, [self.trabajador])
+
+    def test_supervisor_con_area_inexistente_no_queda_en_el_registro(self):
+        with self.assertRaises(ValueError):
+            Supervisor("S1", "Laura", F.TARDE, set(), [], 30, "A9")
+
+        self.assertEqual(Trabajador.registro.trabajadores, [self.trabajador])
 
     def test_registrar_personal_guarda_atributos_opcionales_por_kwargs(self):
         trabajador = Trabajador.registrar_personal(

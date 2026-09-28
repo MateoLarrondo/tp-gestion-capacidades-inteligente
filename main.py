@@ -2,7 +2,6 @@ import json
 import datetime
 
 from enums import FranjaHoraria
-from area_de_trabajo import AreaDeTrabajo
 from trabajador import Trabajador
 from supervisor import Supervisor
 from credencial import Credencial
@@ -15,6 +14,30 @@ def pedir_fecha(mensaje):
             return datetime.datetime.strptime(entrada, "%Y-%m-%d").date()
         except ValueError:
             print("Error: Formato inválido. Asegúrate de usar AAAA-MM-DD con una fecha real.\n")
+
+def pedir_franja(mensaje):
+    """Pide una franja hasta que sea válida; acepta 'mañana', 'TARDE', etc."""
+    while True:
+        entrada = input(mensaje).strip().capitalize()
+        try:
+            return FranjaHoraria(entrada)
+        except ValueError:
+            print("Error: Franja inválida. Las opciones son Mañana, Tarde o Noche.\n")
+
+def pedir_numero_positivo(mensaje):
+    while True:
+        try:
+            valor = float(input(mensaje))
+        except ValueError:
+            print("Error: Debe ingresar un número.\n")
+            continue
+        if valor > 0:
+            return valor
+        print("Error: El valor debe ser mayor a cero.\n")
+
+def pedir_habilidades(mensaje):
+    """Separa por comas, quita espacios sobrantes y descarta entradas vacías."""
+    return {h.strip() for h in input(mensaje).split(",") if h.strip()}
 
 def pedir_atributos_opcionales():
     """Pide atributos opcionales del personal como pares clave=valor (idiomas, área
@@ -35,10 +58,10 @@ def solicitar_rol():
     while True:
         rol = input("Ingrese el rol que desea utilizar: ")
 
-        if rol in ("1", "2"):
+        if rol in ("1", "2", "3"):
             return rol
 
-        print("Opción inválida. Por favor, seleccione 1 o 2.")
+        print("Opción inválida. Por favor, seleccione 1, 2 o 3.")
 
 def gestion():
     print("Ha seleccionado el rol de Gestion")
@@ -54,40 +77,46 @@ def gestion():
     opcion = solicitar_opcion_gestion()
 
     if opcion == "1":
-        id_trabajador = input("Ingrese el ID del trabajador: ")
+        id_trabajador = input("Ingrese el ID del trabajador: ").strip()
         nombre = input("Ingrese el nombre del trabajador: ")
-        franja_horaria = input("Ingrese la franja horaria (Mañana/Tarde/Noche): ")
-        habilidades = input("Ingrese las habilidades separadas por comas: ").split(",")
-        limite_horas_semanales = float(input("Ingrese el límite de horas semanales(menor o igual a 40): "))
+        franja_horaria = pedir_franja("Ingrese la franja horaria (Mañana/Tarde/Noche): ")
+        habilidades = pedir_habilidades("Ingrese las habilidades separadas por comas: ")
+        limite_horas_semanales = pedir_numero_positivo("Ingrese el límite de horas semanales(menor o igual a 40): ")
         atributos_opcionales = pedir_atributos_opcionales()
-        trabajador = Trabajador.registrar_personal(
-            id_trabajador,
-            nombre,
-            FranjaHoraria(franja_horaria),
-            habilidades,
-            limite_horas_semanales,
-            **atributos_opcionales,
-        )
+        try:
+            trabajador = Trabajador.registrar_personal(
+                id_trabajador,
+                nombre,
+                franja_horaria,
+                habilidades,
+                limite_horas_semanales,
+                **atributos_opcionales,
+            )
+        except ValueError as error:
+            print(f"Error: {error}\n")
         ###########deberia guardar el trabajador en un archivo json
         ### with open("trabajadores.json", "w") as f:
         ###    json.dump(trabajador.__dict__, f)
-        
+
     elif opcion == "2":
-        id_trabajador = input("Ingrese el ID del supervisor: ")
+        id_trabajador = input("Ingrese el ID del supervisor: ").strip()
         nombre = input("Ingrese el nombre del supervisor: ")
-        franja_horaria = input("Ingrese la franja horaria (Mañana/Tarde/Noche): ")
-        habilidades = input("Ingrese las habilidades separadas por comas: ").split(",")
-        limite_horas_semanales = float(input("Ingrese el límite de horas semanales(menor o igual a 40): "))
-        area_a_cargo = input("Ingrese el área a cargo del supervisor: ")
-        supervisor = Supervisor(
-            id_trabajador=id_trabajador,
-            nombre=nombre,
-            franja_horaria=FranjaHoraria(franja_horaria),
-            habilidades=habilidades,
-            credenciales=[],
-            limite_horas_semanales=limite_horas_semanales,
-            area_a_cargo=AreaDeTrabajo(area_a_cargo)
-        )
+        franja_horaria = pedir_franja("Ingrese la franja horaria (Mañana/Tarde/Noche): ")
+        habilidades = pedir_habilidades("Ingrese las habilidades separadas por comas: ")
+        limite_horas_semanales = pedir_numero_positivo("Ingrese el límite de horas semanales(menor o igual a 40): ")
+        area_a_cargo = input("Ingrese el ID del área a cargo del supervisor (ej: A1): ").strip()
+        try:
+            supervisor = Supervisor(
+                id_trabajador=id_trabajador,
+                nombre=nombre,
+                franja_horaria=franja_horaria,
+                habilidades=habilidades,
+                credenciales=[],
+                limite_horas_semanales=limite_horas_semanales,
+                area_a_cargo=area_a_cargo
+            )
+        except ValueError as error:
+            print(f"Error: {error}\n")
         #   deberia guardar el supervisor en un archivo json
         ### with open("supervisores.json", "w") as f:
         ###    json.dump(supervisor.__dict__, f)
@@ -95,9 +124,12 @@ def gestion():
         nombre_credencial = input("Ingrese el nombre de la credencial: ")
         fecha_obtencion = pedir_fecha("Ingrese la fecha de obtención de la credencial (YYYY-MM-DD): ")
         fecha_vencimiento = pedir_fecha("Ingrese la fecha de vencimiento de la credencial (YYYY-MM-DD): ")
-        
 
-        credencial = Credencial(nombre_credencial,fecha_obtencion, fecha_vencimiento)
+
+        try:
+            credencial = Credencial(nombre_credencial,fecha_obtencion, fecha_vencimiento)
+        except ValueError as error:
+            print(f"Error: {error}\n")
 
     elif opcion == "4":
             "s"
@@ -111,20 +143,20 @@ def gestion():
 def solicitar_opcion_gestion():
     while True:
          opcion = input("Ingrese la opcion que desea elegir: ")
-         if opcion in ("1","2","3","4","5","6"):
+         if opcion in ("1","2","3","4","5","6","7"):
              return opcion
-         print("Opcion invalida. Por favor seleccione una opcion entre 1 y 6")
+         print("Opcion invalida. Por favor seleccione una opcion entre 1 y 7")
 
 def supervisor():
     print("Ha seleccionado el rol de supervisor.")
     print("1. Asignar trabajo")
-    print("2. Mirar asignaciones pendientes") 
+    print("2. Mirar asignaciones pendientes")
     print("3. Mirar disponibilidad de trabajadores por franja horaria en cierta fecha")
 
     opcion = solicitar_opcion()
 
     if opcion == "1":
-        "s" 
+        "s"
     elif opcion == "2":
         "s"
     elif opcion == "3":
@@ -138,13 +170,14 @@ def solicitar_opcion():
          return opcion
      print("Opcion invalida. Por favor seleccione 1, 2 o 3")
 
-activo = True
 def main():
+        activo = True
         while activo:
             print("----------------------MENU SISTEMA DE ASIGNACION DE TRABAJADORES----------------------")
             print("----------------------          QUE ROL DESEA UTILIZAR          ----------------------")
             print("----------------------           1. Rol de Supervisor           ----------------------")
             print("----------------------           2. Rol de Gestion           ----------------------")
+            print("----------------------           3. Salir           ----------------------")
 
             rol = solicitar_rol()
 
@@ -156,8 +189,3 @@ def main():
                 activo = False
 
 main()
-
-
-
-
-

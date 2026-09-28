@@ -51,7 +51,7 @@ class Trabajador:
         """Registra un nuevo trabajador aceptando atributos opcionales variables según
         el rol (idiomas, área de origen, turno preferido, certificaciones iniciales, etc.)
         sin declarar un parámetro nuevo por cada uno; quedan disponibles en atributos_opcionales."""
-        trabajador = Trabajador(id_trabajador, nombre, franja_horaria, habilidades, [], limite_horas_semanales)
+        trabajador = cls(id_trabajador, nombre, franja_horaria, habilidades, [], limite_horas_semanales)
         trabajador.atributos_opcionales = dict(atributos)
         return trabajador
 

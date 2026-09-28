@@ -1,9 +1,13 @@
 from datetime import date
 from typing import Set, Dict
 from enums import FranjaHoraria
+from registro_areas import registro_areas
 
 class AreaDeTrabajo:
     """Modela un área de trabajo con sus credenciales obligatorias y cupos por franja."""
+
+    # registro de todas las áreas creadas, para validar que existan y que el id sea único
+    registro = registro_areas()
 
     def __init__(
         self,
@@ -19,6 +23,8 @@ class AreaDeTrabajo:
         self._trabajador_asignado_por_franja_por_fecha: Dict[tuple[date, FranjaHoraria], set[str]] = {}
         self.validar_limite_trabajador_por_franja()
         self.id_no_nulo()
+        # se registra solo si pasó las validaciones
+        AreaDeTrabajo.registro.registrar_area(self)
 
     def tiene_cupo_disponible(
         self, fecha: date, franja_horaria: FranjaHoraria, id_trabajador: str

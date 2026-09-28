@@ -21,6 +21,7 @@ def trabajo_mock(id_trabajo="T1"):
     trabajo.habilidades_requeridas = {"Redes"}
     trabajo.credenciales_requeridas = {"CCNA"}
     trabajo.area_trabajo = Mock()
+    trabajo.area_trabajo.id_area = "A1"
     trabajo.area_trabajo.nombre = "Sala de Servidores"
     trabajo.area_trabajo.credenciales_obligatorias = {"Altura"}
     trabajo.area_trabajo.tiene_cupo_disponible.return_value = True
@@ -148,7 +149,7 @@ class TestSistemaAsignacion(unittest.TestCase):
     def _supervisor_del_area(self):
         supervisor = Mock(spec=Supervisor)
         supervisor.nombre = "Laura"
-        supervisor.area_a_cargo = self.area
+        supervisor.area_a_cargo = "A1"
         return supervisor
 
     def test_formalizar_aprueba_con_supervisor_del_area(self):
@@ -181,7 +182,7 @@ class TestSistemaAsignacion(unittest.TestCase):
     def test_formalizar_rechaza_supervisor_de_otra_area(self):
         self.asignacion.trabajador = trabajador_apto()
         supervisor = self._supervisor_del_area()
-        supervisor.area_a_cargo = Mock()
+        supervisor.area_a_cargo = "A2"
 
         with self.assertRaises(PermissionError):
             self.asignacion.formalizar(supervisor)

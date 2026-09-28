@@ -1,9 +1,13 @@
 from area_de_trabajo import AreaDeTrabajo
-from typing import Set  
+from typing import Set
+from sistema_registro import sistema_registro
 
 
 class Trabajo:
     """Una trabajo con su duración, requisitos y el área donde se realiza."""
+
+    # registro de todos los trabajos creados, para que el id sea único
+    registro = sistema_registro()
 
     def __init__(
         self,
@@ -26,6 +30,8 @@ class Trabajo:
         self.titulo_no_vacio()
         self.validar_duracion_horas()
         self.areatrabajo_no_nulo()
+        # se registra solo si pasó las validaciones
+        Trabajo.registro.registrar_trabajo(self)
 
     def validar_duracion_horas(self):
         """Asegura que la duración de la trabajo sea positiva."""

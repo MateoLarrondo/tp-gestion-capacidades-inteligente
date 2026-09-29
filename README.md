@@ -44,7 +44,7 @@ Su misión es diseñar y desarrollar un prototipo de este *Sistema de Gestión d
 ## Estructura del repositorio
 
 ```
-src/     código del sistema (clases del modelo y main.py)
+*.py     código del sistema (clases del modelo y main.py), en la raíz
 tests/   tests unitarios
 data/    datos del sistema (JSON)
 docs/    diagramas y modelado de la primera entrega
@@ -54,5 +54,5 @@ docs/    diagramas y modelado de la primera entrega
 
 Desde la raíz del repo:
 
-- Programa: `python src/main.py`
-- Tests: `python -m pytest` o `python -m unittest`
+- Programa: `python main.py`
+- Tests: `python -m pytest` o `python -m unittest discover -s tests`

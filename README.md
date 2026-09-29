@@ -54,4 +54,4 @@ docs/    diagramas y modelado de la primera entrega
 Desde la raíz del repo:
 
 - Programa: `python main.py`
-- Tests: `python -m pytest` o `python -m unittest`
+- Tests: `python -m pytest` (requiere `pip install pytest`)

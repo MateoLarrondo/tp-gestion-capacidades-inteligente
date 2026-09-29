@@ -165,6 +165,48 @@ def test_agregar_trabajador_rechaza_si_el_area_no_tiene_cupo(asignacion, area):
     assert asignacion.trabajador is None
 
 
+# ---------- agregar_trabajador sin indicar trabajador ----------
+
+def trabajador_con_horas_libres(id_trabajador, horas_libres):
+    trabajador = trabajador_apto(id_trabajador)
+    trabajador.tiempo_libre.return_value = horas_libres
+    return trabajador
+
+
+def test_agregar_trabajador_sin_argumento_propone_al_de_mas_horas_libres(asignacion, trabajo, monkeypatch):
+    poco_libre = trabajador_con_horas_libres("W1", 5)
+    mas_libre = trabajador_con_horas_libres("W2", 30)
+    medio_libre = trabajador_con_horas_libres("W3", 12)
+    disponibles_en = Mock(return_value=[poco_libre, mas_libre, medio_libre])
+    monkeypatch.setattr(Trabajador, "disponibles_en", disponibles_en)
+
+    asignacion.agregar_trabajador()
+
+    disponibles_en.assert_called_once_with(trabajo, FECHA, F.MANIANA)
+    assert asignacion.trabajador is mas_libre
+    mas_libre.sumar_horas.assert_called_once_with(4)
+    poco_libre.sumar_horas.assert_not_called()
+    medio_libre.sumar_horas.assert_not_called()
+
+
+def test_agregar_trabajador_sin_argumento_rechaza_si_no_hay_aptos(asignacion, monkeypatch):
+    monkeypatch.setattr(Trabajador, "disponibles_en", Mock(return_value=[]))
+
+    with pytest.raises(ValueError):
+        asignacion.agregar_trabajador()
+    assert asignacion.trabajador is None
+
+
+def test_agregar_trabajador_sin_argumento_no_busca_si_ya_tiene_trabajador(asignacion, monkeypatch):
+    asignacion.agregar_trabajador(trabajador_apto("W1"))
+    disponibles_en = Mock(return_value=[trabajador_con_horas_libres("W2", 30)])
+    monkeypatch.setattr(Trabajador, "disponibles_en", disponibles_en)
+
+    with pytest.raises(ValueError):
+        asignacion.agregar_trabajador()
+    disponibles_en.assert_not_called()
+
+
 # ---------- formalizar ----------
 
 def test_formalizar_aprueba_con_supervisor_del_area(asignacion):

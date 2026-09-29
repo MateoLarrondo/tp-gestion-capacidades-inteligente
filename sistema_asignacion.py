@@ -29,15 +29,20 @@ class SistemaAsignacion:
         self.estado = EstadoAsignacion.PENDIENTE
         self.supervisor_aprobador: Optional[Supervisor] = None
 
-    def agregar_trabajador(self, trabajador: Trabajador):
+    def agregar_trabajador(self, trabajador: Optional[Trabajador] = None):
         """Propone un trabajador para la asignación, validando aptitud, disponibilidad,
-        carga horaria y cupo, y reservando esos recursos de inmediato (reglas 4, 5, 6, 7, 9, 10)."""
+        carga horaria y cupo, y reservando esos recursos de inmediato (reglas 4, 5, 6, 7, 9, 10).
+        Si no se indica un trabajador, recorre el personal registrado y propone, entre los aptos,
+        al que más horas libres le quedan en la semana."""
         if self.estado == EstadoAsignacion.APROBADA:
             raise ValueError("No se pueden agregar trabajadores a una asignación aprobada.")
         if self.trabajador is not None:
             raise ValueError(
                 f"La labor '{self.trabajo.titulo}' ya tiene asignado a {self.trabajador.nombre}."
             )
+
+        if trabajador is None:
+            trabajador = self._trabajador_con_mas_horas_libres()
 
         clave = (self.trabajo.id_trabajo, self.fecha, self.franja_horaria)
         asignacion_existente = SistemaAsignacion._asignaciones_activas.get(clave)
@@ -78,6 +83,17 @@ class SistemaAsignacion:
 
         self.trabajador = trabajador
         SistemaAsignacion._asignaciones_activas[clave] = self
+
+    def _trabajador_con_mas_horas_libres(self) -> Trabajador:
+        """Entre los trabajadores aptos para la labor en esta fecha y franja, devuelve
+        el que tiene más horas libres en la semana."""
+        candidatos = Trabajador.disponibles_en(self.trabajo, self.fecha, self.franja_horaria)
+        if not candidatos:
+            raise ValueError(
+                f"No hay trabajadores aptos para '{self.trabajo.titulo}' el {self.fecha} "
+                f"en la franja {self.franja_horaria.value}."
+            )
+        return max(candidatos, key=lambda t: t.tiempo_libre())
 
     def formalizar(self, supervisor: Trabajador):
         """Solo un supervisor a cargo del área del trabajo puede aprobar."""

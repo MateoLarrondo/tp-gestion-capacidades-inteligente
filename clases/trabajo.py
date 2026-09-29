@@ -34,21 +34,21 @@ class Trabajo:
         Trabajo.registro.registrar_trabajo(self)
 
     def validar_duracion_horas(self):
-        """Asegura que la duración de la trabajo sea positiva."""
+        """Asegura que la duración del trabajo sea positiva."""
         if self.duracion_horas <= 0:
             raise ValueError(
-                f"La duración de la trabajo {self.titulo} debe ser mayor a cero. Valor dado: {self.duracion_horas}"
+                f"La duración del trabajo {self.titulo} debe ser mayor a cero. Valor dado: {self.duracion_horas}"
             )
 
     def id_no_vacio(self):
-        """Asegura que el identificador de la trabajo no esté vacío."""
+        """Asegura que el identificador del trabajo no esté vacío."""
         if not self.id_trabajo:
-            raise ValueError("El identificador de la trabajo no puede estar vacío.")
+            raise ValueError("El identificador del trabajo no puede estar vacío.")
 
     def titulo_no_vacio(self):
-        """Asegura que el título de la trabajo no esté vacío."""
+        """Asegura que el título del trabajo no esté vacío."""
         if not self.titulo:
-            raise ValueError("El título de la trabajo no puede estar vacío.")
+            raise ValueError("El título del trabajo no puede estar vacío.")
 
     def areatrabajo_no_nulo(self):
         """Asegura que el área de trabajo no sea nula."""

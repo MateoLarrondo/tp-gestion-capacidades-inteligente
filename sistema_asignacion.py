@@ -41,48 +41,55 @@ class SistemaAsignacion:
                 f"La labor '{self.trabajo.titulo}' ya tiene asignado a {self.trabajador.nombre}."
             )
 
+        # un trabajo de más de HORAS_POR_FRANJA se reparte en los días siguientes,
+        # en la misma franja; todas las reglas se validan en cada uno de esos días
+        dias = [dia for dia, _ in self.trabajo.reparto_por_dia(self.fecha)]
+        claves = [(self.trabajo.id_trabajo, dia, self.franja_horaria) for dia in dias]
+        for clave in claves:
+            asignacion_existente = SistemaAsignacion._asignaciones_activas.get(clave)
+            if asignacion_existente is not None and asignacion_existente is not self:
+                raise ValueError(
+                    f"La labor '{self.trabajo.titulo}' ya tiene una asignación el {clave[1]} "
+                    f"en la franja {self.franja_horaria.value}."
+                )
+
         if trabajador is None:
             trabajador = self._trabajador_con_mas_horas_libres()
 
-        clave = (self.trabajo.id_trabajo, self.fecha, self.franja_horaria)
-        asignacion_existente = SistemaAsignacion._asignaciones_activas.get(clave)
-        if asignacion_existente is not None and asignacion_existente is not self:
-            raise ValueError(
-                f"La labor '{self.trabajo.titulo}' ya tiene una asignación el {self.fecha} "
-                f"en la franja {self.franja_horaria.value}."
-            )
-
-        if not trabajador.esta_disponible(self.franja_horaria, self.fecha):
-            raise ValueError(
-                f"{trabajador.nombre} no está disponible el {self.fecha} en la franja {self.franja_horaria.value}."
-            )
+        area = self.trabajo.area_trabajo
         if not trabajador.tiene_habilidades(self.trabajo.habilidades_requeridas):
             raise ValueError(
                 f"{trabajador.nombre} no posee las habilidades requeridas para '{self.trabajo.titulo}'."
             )
-        if not trabajador.tiene_credenciales_activas(self.trabajo.credenciales_requeridas, self.fecha):
-            raise ValueError(
-                f"{trabajador.nombre} no tiene activas las credenciales que exige '{self.trabajo.titulo}'."
-            )
-        area = self.trabajo.area_trabajo
-        if not trabajador.tiene_credenciales_activas(area.credenciales_obligatorias, self.fecha):
-            raise ValueError(f"{trabajador.nombre} no es apto para el área '{area.nombre}'.")
         if trabajador.excede_limite_horas(self.trabajo.duracion_horas):
             raise ValueError(
                 f"La carga laboral de {trabajador.nombre} sería excesiva: supera el límite semanal de "
                 f"{trabajador.limite_horas_semanales} hs."
             )
-        if not area.tiene_cupo_disponible(self.fecha, self.franja_horaria, trabajador.id_trabajador):
-            raise ValueError(
-                f"La franja {self.franja_horaria.value} del {self.fecha} en '{area.nombre}' está completa."
-            )
+        for dia in dias:
+            if not trabajador.esta_disponible(self.franja_horaria, dia):
+                raise ValueError(
+                    f"{trabajador.nombre} no está disponible el {dia} en la franja {self.franja_horaria.value}."
+                )
+            if not trabajador.tiene_credenciales_activas(self.trabajo.credenciales_requeridas, dia):
+                raise ValueError(
+                    f"{trabajador.nombre} no tiene activas el {dia} las credenciales que exige "
+                    f"'{self.trabajo.titulo}'."
+                )
+            if not trabajador.tiene_credenciales_activas(area.credenciales_obligatorias, dia):
+                raise ValueError(f"{trabajador.nombre} no es apto el {dia} para el área '{area.nombre}'.")
+            if not area.tiene_cupo_disponible(dia, self.franja_horaria, trabajador.id_trabajador):
+                raise ValueError(
+                    f"La franja {self.franja_horaria.value} del {dia} en '{area.nombre}' está completa."
+                )
 
         trabajador.sumar_horas(self.trabajo.duracion_horas)
-        trabajador.registrar_ocupacion(self.franja_horaria, self.fecha)
-        area.registrar_trabajador_en_franja(self.fecha, self.franja_horaria, trabajador.id_trabajador)
+        for dia, clave in zip(dias, claves):
+            trabajador.registrar_ocupacion(self.franja_horaria, dia)
+            area.registrar_trabajador_en_franja(dia, self.franja_horaria, trabajador.id_trabajador)
+            SistemaAsignacion._asignaciones_activas[clave] = self
 
         self.trabajador = trabajador
-        SistemaAsignacion._asignaciones_activas[clave] = self
 
     def _trabajador_con_mas_horas_libres(self) -> Trabajador:
         """Entre los trabajadores aptos para la labor en esta fecha y franja, devuelve

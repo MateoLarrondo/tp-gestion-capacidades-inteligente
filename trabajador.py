@@ -137,21 +137,26 @@ class Trabajador:
     ):
         """Devuelve los trabajadores disponibles para una labor, franja y fecha dadas (regla 11):
         con habilidades y credenciales activas (de la labor y del área), que no excedan su límite
-        de horas semanales y para los que la franja del área aún tenga cupo."""
+        de horas semanales y para los que la franja del área aún tenga cupo. Si la labor dura más
+        de una franja, se exige lo mismo en cada uno de los días que abarca."""
         area = trabajo.area_trabajo
+        dias = [dia for dia, _ in trabajo.reparto_por_dia(fecha)]
         disponibles = []
         for t in cls.registro.trabajadores:
-            if not t.esta_disponible(franja_horaria, fecha):
-                continue
             if not t.tiene_habilidades(trabajo.habilidades_requeridas):
-                continue
-            if not t.tiene_credenciales_activas(trabajo.credenciales_requeridas, fecha):
-                continue
-            if not t.tiene_credenciales_activas(area.credenciales_obligatorias, fecha):
                 continue
             if t.excede_limite_horas(trabajo.duracion_horas):
                 continue
-            if not area.tiene_cupo_disponible(fecha, franja_horaria, t.id_trabajador):
-                continue
-            disponibles.append(t)
+            if all(t._apto_el_dia(trabajo, dia, franja_horaria) for dia in dias):
+                disponibles.append(t)
         return disponibles
+
+    def _apto_el_dia(self, trabajo: Trabajo, fecha: date, franja_horaria: FranjaHoraria):
+        """Chequeos de disponibilidad, credenciales y cupo que dependen de la fecha."""
+        area = trabajo.area_trabajo
+        return (
+            self.esta_disponible(franja_horaria, fecha)
+            and self.tiene_credenciales_activas(trabajo.credenciales_requeridas, fecha)
+            and self.tiene_credenciales_activas(area.credenciales_obligatorias, fecha)
+            and area.tiene_cupo_disponible(fecha, franja_horaria, self.id_trabajador)
+        )

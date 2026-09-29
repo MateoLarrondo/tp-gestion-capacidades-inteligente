@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 from unittest.mock import Mock
 
 import pytest
@@ -6,6 +6,7 @@ import pytest
 from enums import FranjaHoraria as F
 from credencial import Credencial
 from trabajador import Trabajador
+from trabajo import Trabajo
 from supervisor import Supervisor
 from area_de_trabajo import AreaDeTrabajo
 from sistema_registro import sistema_registro
@@ -30,6 +31,8 @@ def trabajo_mock():
     trabajo.duracion_horas = 4
     trabajo.area_trabajo.credenciales_obligatorias = {"Altura"}
     trabajo.area_trabajo.tiene_cupo_disponible.return_value = True
+    # usa el reparto real, que solo depende de duracion_horas
+    trabajo.reparto_por_dia.side_effect = lambda fecha: Trabajo.reparto_por_dia(trabajo, fecha)
     return trabajo
 
 
@@ -313,3 +316,22 @@ def test_disponibles_en_excluye_si_el_area_no_tiene_cupo(trabajador):
 
     assert resultado == []
     trabajo.area_trabajo.tiene_cupo_disponible.assert_called_once_with(FECHA, F.MANIANA, "W1")
+
+
+def test_disponibles_en_trabajo_largo_excluye_si_no_esta_disponible_el_dia_siguiente(trabajador):
+    hacer_apto(trabajador)
+    dia_siguiente = FECHA + timedelta(days=1)
+    trabajador.esta_disponible = Mock(side_effect=lambda franja, fecha: fecha != dia_siguiente)
+    trabajo = trabajo_mock()
+    trabajo.duracion_horas = 12
+
+    assert Trabajador.disponibles_en(trabajo, FECHA, F.MANIANA) == []
+
+
+def test_disponibles_en_trabajo_largo_incluye_si_es_apto_ambos_dias(trabajador):
+    hacer_apto(trabajador)
+    trabajo = trabajo_mock()
+    trabajo.duracion_horas = 12
+
+    assert Trabajador.disponibles_en(trabajo, FECHA, F.MANIANA) == [trabajador]
+    assert trabajo.area_trabajo.tiene_cupo_disponible.call_count == 2

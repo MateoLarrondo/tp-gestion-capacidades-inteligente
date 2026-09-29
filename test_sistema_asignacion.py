@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 from unittest.mock import Mock
 
 import pytest
@@ -11,6 +11,7 @@ from sistema_asignacion import SistemaAsignacion
 
 
 FECHA = date(2026, 9, 16)
+DIA_SIGUIENTE = FECHA + timedelta(days=1)
 
 
 def trabajo_mock(id_trabajo="T1"):
@@ -26,6 +27,8 @@ def trabajo_mock(id_trabajo="T1"):
     trabajo.area_trabajo.nombre = "Sala de Servidores"
     trabajo.area_trabajo.credenciales_obligatorias = {"Altura"}
     trabajo.area_trabajo.tiene_cupo_disponible.return_value = True
+    # usa el reparto real, que solo depende de duracion_horas
+    trabajo.reparto_por_dia.side_effect = lambda fecha: Trabajo.reparto_por_dia(trabajo, fecha)
     return trabajo
 
 
@@ -163,6 +166,55 @@ def test_agregar_trabajador_rechaza_si_el_area_no_tiene_cupo(asignacion, area):
         asignacion.agregar_trabajador(trabajador_apto())
     area.registrar_trabajador_en_franja.assert_not_called()
     assert asignacion.trabajador is None
+
+
+# ---------- agregar_trabajador con un trabajo de más de 8 horas ----------
+
+def test_agregar_trabajador_trabajo_largo_reserva_ambos_dias(asignacion, trabajo, area):
+    trabajo.duracion_horas = 12
+    trabajador = trabajador_apto()
+
+    asignacion.agregar_trabajador(trabajador)
+
+    trabajador.sumar_horas.assert_called_once_with(12)
+    assert trabajador.registrar_ocupacion.call_args_list == [
+        ((F.MANIANA, FECHA),), ((F.MANIANA, DIA_SIGUIENTE),),
+    ]
+    assert area.registrar_trabajador_en_franja.call_args_list == [
+        ((FECHA, F.MANIANA, "W1"),), ((DIA_SIGUIENTE, F.MANIANA, "W1"),),
+    ]
+    assert SistemaAsignacion._asignaciones_activas[("T1", FECHA, F.MANIANA)] is asignacion
+    assert SistemaAsignacion._asignaciones_activas[("T1", DIA_SIGUIENTE, F.MANIANA)] is asignacion
+
+
+def test_agregar_trabajador_trabajo_largo_rechaza_si_no_esta_disponible_el_dia_siguiente(asignacion, trabajo):
+    trabajo.duracion_horas = 12
+    trabajador = trabajador_apto()
+    trabajador.esta_disponible.side_effect = lambda franja, fecha: fecha != DIA_SIGUIENTE
+
+    with pytest.raises(ValueError):
+        asignacion.agregar_trabajador(trabajador)
+    trabajador.sumar_horas.assert_not_called()
+    trabajador.registrar_ocupacion.assert_not_called()
+
+
+def test_agregar_trabajador_trabajo_largo_rechaza_si_el_area_no_tiene_cupo_el_dia_siguiente(asignacion, trabajo, area):
+    trabajo.duracion_horas = 12
+    area.tiene_cupo_disponible.side_effect = lambda fecha, franja, id_trabajador: fecha != DIA_SIGUIENTE
+
+    with pytest.raises(ValueError):
+        asignacion.agregar_trabajador(trabajador_apto())
+    area.registrar_trabajador_en_franja.assert_not_called()
+
+
+def test_agregar_trabajador_trabajo_largo_rechaza_si_la_labor_ya_esta_asignada_el_dia_siguiente(asignacion, trabajo):
+    trabajo.duracion_horas = 12
+    SistemaAsignacion(2, trabajo, DIA_SIGUIENTE, F.MANIANA).agregar_trabajador(trabajador_apto("W1"))
+    trabajador = trabajador_apto("W2")
+
+    with pytest.raises(ValueError):
+        asignacion.agregar_trabajador(trabajador)
+    trabajador.sumar_horas.assert_not_called()
 
 
 # ---------- agregar_trabajador sin indicar trabajador ----------

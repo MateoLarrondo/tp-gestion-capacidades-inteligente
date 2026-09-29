@@ -1,6 +1,6 @@
 import unittest
 from datetime import date
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from enums import FranjaHoraria as F, EstadoAsignacion
 from trabajador import Trabajador
@@ -44,13 +44,11 @@ def trabajador_apto(id_trabajador="W1"):
 class TestSistemaAsignacion(unittest.TestCase):
 
     def setUp(self):
-        SistemaAsignacion._asignaciones_activas.clear()
+        # vacía las asignaciones activas durante el test y restaura su contenido al terminar
+        self.enterContext(patch.dict(SistemaAsignacion._asignaciones_activas, clear=True))
         self.trabajo = trabajo_mock()
         self.area = self.trabajo.area_trabajo
         self.asignacion = SistemaAsignacion(1, self.trabajo, FECHA, F.MANIANA)
-
-    def tearDown(self):
-        SistemaAsignacion._asignaciones_activas.clear()
 
     # ---------- __init__ ----------
 

@@ -1,7 +1,8 @@
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from trabajo import Trabajo
+from sistema_registro import sistema_registro
 
 
 def crear_trabajo(id_trabajo="J1"):
@@ -11,10 +12,8 @@ def crear_trabajo(id_trabajo="J1"):
 class TestTrabajo(unittest.TestCase):
 
     def setUp(self):
-        Trabajo.registro.trabajos.clear()
-
-    def tearDown(self):
-        Trabajo.registro.trabajos.clear()
+        # cada test usa un registro nuevo y vacío; el original se restaura solo al terminar
+        self.enterContext(patch.object(Trabajo, "registro", sistema_registro()))
 
     def test_init_agrega_el_trabajo_al_registro(self):
         trabajo = crear_trabajo()

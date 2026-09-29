@@ -7,6 +7,8 @@ from credencial import Credencial
 from trabajador import Trabajador
 from supervisor import Supervisor
 from area_de_trabajo import AreaDeTrabajo
+from sistema_registro import sistema_registro
+from registro_areas import registro_areas
 
 
 FECHA = date(2026, 9, 16)
@@ -23,14 +25,11 @@ def credencial_mock(nombre, activa):
 class TestTrabajador(unittest.TestCase):
 
     def setUp(self):
-        Trabajador.registro.trabajadores.clear()
-        AreaDeTrabajo.registro.areas.clear()
+        # cada test usa registros nuevos y vacíos; los originales se restauran solos al terminar
+        self.enterContext(patch.object(Trabajador, "registro", sistema_registro()))
+        self.enterContext(patch.object(AreaDeTrabajo, "registro", registro_areas()))
         AreaDeTrabajo("A1", "Taller", set(), {F.TARDE: 2})
         self.trabajador = Trabajador("W1", "Nico", F.MANIANA, {"Redes", "Soldadura"}, [], 40)
-
-    def tearDown(self):
-        Trabajador.registro.trabajadores.clear()
-        AreaDeTrabajo.registro.areas.clear()
 
     # ---------- __init__ ----------
 

@@ -40,3 +40,19 @@ Su misión es diseñar y desarrollar un prototipo de este *Sistema de Gestión d
 - Es requisito obligatorio presentar un diagrama de flujo previo a la codificación para organizar la arquitectura lógica y prevenir fallos de diseño.
 - Cada implementación debe estar debidamente sustentada; el alumno debe ser capaz de explicar y justificar técnicamente las decisiones tomadas en el código.
 - Se recomienda el uso de la librería estándar de Python (como datetime o math) para optimizar tareas específicas y evitar la redacción innecesaria de funciones ya existentes.
+
+## Estructura del repositorio
+
+```
+src/     código del sistema (clases del modelo y main.py)
+tests/   tests unitarios
+data/    datos del sistema (JSON)
+docs/    diagramas y modelado de la primera entrega
+```
+
+## Cómo ejecutar
+
+Desde la raíz del repo:
+
+- Programa: `python src/main.py`
+- Tests: `python -m pytest` o `python -m unittest`

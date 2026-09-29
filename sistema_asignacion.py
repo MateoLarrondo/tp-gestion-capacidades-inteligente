@@ -29,7 +29,7 @@ class SistemaAsignacion:
         self.estado = EstadoAsignacion.PENDIENTE
         self.supervisor_aprobador: Optional[Supervisor] = None
 
-    def agregar_trabajador(self, trabajador: Trabajador) -> None:
+    def agregar_trabajador(self, trabajador: Trabajador):
         """Propone un trabajador para la asignación, validando aptitud, disponibilidad,
         carga horaria y cupo, y reservando esos recursos de inmediato (reglas 4, 5, 6, 7, 9, 10)."""
         if self.estado == EstadoAsignacion.APROBADA:
@@ -79,7 +79,7 @@ class SistemaAsignacion:
         self.trabajador = trabajador
         SistemaAsignacion._asignaciones_activas[clave] = self
 
-    def formalizar(self, supervisor: Trabajador) -> None:
+    def formalizar(self, supervisor: Trabajador):
         """Solo un supervisor a cargo del área del trabajo puede aprobar."""
         if self.estado == EstadoAsignacion.APROBADA:
             raise ValueError("La asignación ya está aprobada.")

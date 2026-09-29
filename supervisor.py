@@ -1,3 +1,6 @@
+
+
+
 import enums as e
 from trabajador import Trabajador
 from area_de_trabajo import AreaDeTrabajo

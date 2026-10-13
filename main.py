@@ -5,7 +5,7 @@ from enums import FranjaHoraria
 from trabajador import Trabajador
 from supervisor import Supervisor
 from credencial import Credencial
-from loader_datos import cargar_datos
+from loader_datos import cargar_datos, guardar_datos
 
 
 def pedir_fecha(mensaje):
@@ -95,9 +95,8 @@ def gestion():
             )
         except ValueError as error:
             print(f"Error: {error}\n")
-        ###########deberia guardar el trabajador en un archivo json
-        ### with open("trabajadores.json", "w") as f:
-        ###    json.dump(trabajador.__dict__, f)
+        else:
+            guardar_datos()
 
     elif opcion == "2":
         id_trabajador = input("Ingrese el ID del supervisor: ").strip()
@@ -118,9 +117,8 @@ def gestion():
             )
         except ValueError as error:
             print(f"Error: {error}\n")
-        #   deberia guardar el supervisor en un archivo json
-        ### with open("supervisores.json", "w") as f:
-        ###    json.dump(supervisor.__dict__, f)
+        else:
+            guardar_datos()
     elif opcion == "3":
         nombre_credencial = input("Ingrese el nombre de la credencial: ")
         fecha_obtencion = pedir_fecha("Ingrese la fecha de obtención de la credencial (YYYY-MM-DD): ")

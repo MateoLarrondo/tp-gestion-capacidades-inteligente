@@ -48,3 +48,52 @@ def cargar_datos(ruta="data/datos_sistema.json"):
             set(j["credenciales_requeridas"]),
             area,
         )
+
+
+def guardar_datos(ruta="data/datos_sistema.json"):
+    """Escribe en el JSON el estado actual de áreas, personal y trabajos, con el
+    mismo formato que lee cargar_datos."""
+    datos = {
+        "areas": [
+            {
+                "id_area": a.id_area,
+                "nombre": a.nombre,
+                "credenciales_obligatorias": sorted(a.credenciales_obligatorias),
+                "limite_trabajador_por_franja": {f.value: n for f, n in a.limite_trabajador_por_franja.items()},
+            }
+            for a in AreaDeTrabajo.registro.areas
+        ],
+        "trabajadores": [
+            {
+                "id_trabajador": t.id_trabajador,
+                "nombre": t.nombre,
+                "franja_horaria": t.franja_horaria.value,
+                "habilidades": sorted(t.habilidades),
+                "credenciales": [
+                    {
+                        "nombre": c.nombre,
+                        "fecha_obtencion": c.fecha_obtencion.isoformat(),
+                        "fecha_expiracion": c.fecha_expiracion.isoformat(),
+                    }
+                    for c in t.credenciales
+                ],
+                "limite_horas_semanales": t.limite_horas_semanales,
+                "area_a_cargo": getattr(t, "area_a_cargo", None),
+            }
+            for t in Trabajador.registro.trabajadores
+        ],
+        "trabajos": [
+            {
+                "id_trabajo": j.id_trabajo,
+                "titulo": j.titulo,
+                "descripcion": j.descripcion,
+                "duracion_horas": j.duracion_horas,
+                "habilidades_requeridas": sorted(j.habilidades_requeridas),
+                "credenciales_requeridas": sorted(j.credenciales_requeridas),
+                "area_trabajo": j.area_trabajo.id_area,
+            }
+            for j in Trabajo.registro.trabajos
+        ],
+    }
+    with open(ruta, "w", encoding="utf-8") as archivo:
+        json.dump(datos, archivo, ensure_ascii=False, indent=2)

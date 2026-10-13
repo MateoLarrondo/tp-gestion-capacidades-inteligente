@@ -223,6 +223,23 @@ def solicitar_opcion_gestion():
              return opcion
          print("Opcion invalida. Por favor seleccione una opcion entre 1 y 7")
 
+def aprobar_asignacion(pendientes, id_asignacion):
+    """Pide el supervisor y formaliza la asignación pendiente con ese ID."""
+    asignacion = next((a for a in pendientes if str(a.id_asignacion) == id_asignacion), None)
+    if asignacion is None:
+        print("Error: No hay una asignación pendiente con ese ID.\n")
+        return
+    aprobador = buscar_trabajador(input("Ingrese su ID de supervisor: ").strip())
+    if aprobador is None:
+        print("Error: No existe un trabajador con ese ID.\n")
+        return
+    try:
+        asignacion.formalizar(aprobador)
+    except (ValueError, PermissionError) as error:
+        print(f"Error: {error}\n")
+    else:
+        print("Asignación aprobada.\n")
+
 def supervisor():
     print("Ha seleccionado el rol de supervisor.")
     print("1. Asignar trabajo")
@@ -257,6 +274,10 @@ def supervisor():
             print("No hay asignaciones pendientes.\n")
         for a in pendientes:
             print(f"{a.id_asignacion} - {a.trabajo.titulo} | {a.trabajador.nombre} | {a.fecha} {a.franja_horaria.value}")
+        if pendientes:
+            id_asignacion = input("Ingrese el ID de la asignación a aprobar (vacío para volver): ").strip()
+            if id_asignacion:
+                aprobar_asignacion(pendientes, id_asignacion)
     elif opcion == "3":
         trabajo = buscar_trabajo(input("Ingrese el ID del trabajo: ").strip())
         if trabajo is None:

@@ -1,7 +1,7 @@
 import json
 import datetime
 
-from enums import FranjaHoraria
+from enums import FranjaHoraria, EstadoAsignacion
 from trabajador import Trabajador
 from supervisor import Supervisor
 from credencial import Credencial
@@ -252,7 +252,11 @@ def supervisor():
                     asignaciones.append(asignacion)
                     print(f"Asignación {asignacion.id_asignacion} propuesta para {asignacion.trabajador.nombre} (Pendiente).\n")
     elif opcion == "2":
-        "s"
+        pendientes = [a for a in asignaciones if a.estado == EstadoAsignacion.PENDIENTE]
+        if not pendientes:
+            print("No hay asignaciones pendientes.\n")
+        for a in pendientes:
+            print(f"{a.id_asignacion} - {a.trabajo.titulo} | {a.trabajador.nombre} | {a.fecha} {a.franja_horaria.value}")
     elif opcion == "3":
         trabajo = buscar_trabajo(input("Ingrese el ID del trabajo: ").strip())
         if trabajo is None:

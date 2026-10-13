@@ -64,6 +64,13 @@ def buscar_trabajador(id_trabajador):
             return t
     return None
 
+def buscar_trabajo(id_trabajo):
+    """Devuelve el trabajo con ese ID, o None si no existe."""
+    for t in Trabajo.registro.trabajos:
+        if t.id_trabajo == id_trabajo:
+            return t
+    return None
+
 def buscar_area(id_area):
     """Devuelve el área con ese ID, o None si no existe."""
     for a in AreaDeTrabajo.registro.areas:
@@ -225,9 +232,18 @@ def supervisor():
     elif opcion == "2":
         "s"
     elif opcion == "3":
-        franja_horaria = input("Ingrese la franja horaria (Mañana/Tarde/Noche): ")
-        fecha = input("Ingrese la fecha (YYYY-MM-DD): ")
-        """definir si hacemos el json o como"""
+        trabajo = buscar_trabajo(input("Ingrese el ID del trabajo: ").strip())
+        if trabajo is None:
+            print("Error: No existe un trabajo con ese ID.\n")
+        else:
+            franja_horaria = pedir_franja("Ingrese la franja horaria (Mañana/Tarde/Noche): ")
+            fecha = pedir_fecha("Ingrese la fecha (YYYY-MM-DD): ")
+            disponibles = Trabajador.disponibles_en(trabajo, fecha, franja_horaria)
+            if not disponibles:
+                print("No hay trabajadores disponibles.\n")
+            for t in disponibles:
+                print(f"{t.id_trabajador} - {t.nombre} ({t.tiempo_libre()} hs libres en la semana)")
+
 def solicitar_opcion():
     while True:
      opcion = input("Ingrese la opcion que desea elegir: ")

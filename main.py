@@ -7,7 +7,11 @@ from supervisor import Supervisor
 from credencial import Credencial
 from area_de_trabajo import AreaDeTrabajo
 from trabajo import Trabajo
+from sistema_asignacion import SistemaAsignacion
 from loader_datos import cargar_datos, guardar_datos
+
+# asignaciones propuestas durante la ejecución (no se guardan en el JSON)
+asignaciones = []
 
 
 def pedir_fecha(mensaje):
@@ -228,7 +232,25 @@ def supervisor():
     opcion = solicitar_opcion()
 
     if opcion == "1":
-        "s"
+        trabajo = buscar_trabajo(input("Ingrese el ID del trabajo: ").strip())
+        if trabajo is None:
+            print("Error: No existe un trabajo con ese ID.\n")
+        else:
+            fecha = pedir_fecha("Ingrese la fecha (YYYY-MM-DD): ")
+            franja_horaria = pedir_franja("Ingrese la franja horaria (Mañana/Tarde/Noche): ")
+            id_trabajador = input("Ingrese el ID del trabajador (vacío para elegirlo automáticamente): ").strip()
+            trabajador = buscar_trabajador(id_trabajador)
+            if id_trabajador and trabajador is None:
+                print("Error: No existe un trabajador con ese ID.\n")
+            else:
+                asignacion = SistemaAsignacion(len(asignaciones) + 1, trabajo, fecha, franja_horaria)
+                try:
+                    asignacion.agregar_trabajador(trabajador)
+                except ValueError as error:
+                    print(f"Error: {error}\n")
+                else:
+                    asignaciones.append(asignacion)
+                    print(f"Asignación {asignacion.id_asignacion} propuesta para {asignacion.trabajador.nombre} (Pendiente).\n")
     elif opcion == "2":
         "s"
     elif opcion == "3":

@@ -153,7 +153,16 @@ def gestion():
                 trabajador.credenciales.append(credencial)
                 guardar_datos()
     elif opcion == "5":
-            "s"
+        trabajador = buscar_trabajador(input("Ingrese el ID del trabajador: ").strip())
+        if trabajador is None:
+            print("Error: No existe un trabajador con ese ID.\n")
+        else:
+            habilidad = input("Ingrese la habilidad a agregar: ").strip()
+            if habilidad:
+                trabajador.habilidades.add(habilidad)
+                guardar_datos()
+            else:
+                print("Error: La habilidad no puede estar vacía.\n")
     elif opcion == "6":
             "s"
     elif opcion == "7":

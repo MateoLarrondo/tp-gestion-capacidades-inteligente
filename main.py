@@ -5,6 +5,7 @@ from enums import FranjaHoraria
 from trabajador import Trabajador
 from supervisor import Supervisor
 from credencial import Credencial
+from loader_datos import cargar_datos
 
 
 def pedir_fecha(mensaje):
@@ -171,6 +172,7 @@ def solicitar_opcion():
      print("Opcion invalida. Por favor seleccione 1, 2 o 3")
 
 def main():
+        cargar_datos()
         activo = True
         while activo:
             print("----------------------MENU SISTEMA DE ASIGNACION DE TRABAJADORES----------------------")
@@ -188,4 +190,5 @@ def main():
             else:
                 activo = False
 
-main()
+if __name__ == "__main__":
+    main()

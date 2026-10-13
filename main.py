@@ -55,6 +55,13 @@ def pedir_atributos_opcionales():
             atributos[clave.strip()] = valor.strip()
     return atributos
 
+def buscar_trabajador(id_trabajador):
+    """Devuelve el trabajador (o supervisor) con ese ID, o None si no existe."""
+    for t in Trabajador.registro.trabajadores:
+        if t.id_trabajador == id_trabajador:
+            return t
+    return None
+
 def solicitar_rol():
     while True:
         rol = input("Ingrese el rol que desea utilizar: ")
@@ -131,7 +138,20 @@ def gestion():
             print(f"Error: {error}\n")
 
     elif opcion == "4":
-            "s"
+        trabajador = buscar_trabajador(input("Ingrese el ID del trabajador: ").strip())
+        if trabajador is None:
+            print("Error: No existe un trabajador con ese ID.\n")
+        else:
+            nombre_credencial = input("Ingrese el nombre de la credencial: ")
+            fecha_obtencion = pedir_fecha("Ingrese la fecha de obtención de la credencial (YYYY-MM-DD): ")
+            fecha_vencimiento = pedir_fecha("Ingrese la fecha de vencimiento de la credencial (YYYY-MM-DD): ")
+            try:
+                credencial = Credencial(nombre_credencial, fecha_obtencion, fecha_vencimiento)
+            except ValueError as error:
+                print(f"Error: {error}\n")
+            else:
+                trabajador.credenciales.append(credencial)
+                guardar_datos()
     elif opcion == "5":
             "s"
     elif opcion == "6":

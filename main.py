@@ -101,6 +101,7 @@ def gestion():
     print("5. Habilidad a un trabajador")
     print("6. Area de trabajo")
     print("7. Trabajo pendiente ")
+    print("8. Reiniciar semana")
 
     opcion = solicitar_opcion_gestion()
 
@@ -215,13 +216,16 @@ def gestion():
                 print(f"Error: {error}\n")
             else:
                 guardar_datos()
+    elif opcion == "8":
+        Trabajador.reiniciar_semana_todos()
+        print("Semana reiniciada: las horas asignadas de todo el personal volvieron a cero.\n")
 
 def solicitar_opcion_gestion():
     while True:
          opcion = input("Ingrese la opcion que desea elegir: ")
-         if opcion in ("1","2","3","4","5","6","7"):
+         if opcion in ("1","2","3","4","5","6","7","8"):
              return opcion
-         print("Opcion invalida. Por favor seleccione una opcion entre 1 y 7")
+         print("Opcion invalida. Por favor seleccione una opcion entre 1 y 8")
 
 def aprobar_asignacion(pendientes, id_asignacion):
     """Pide el supervisor y formaliza la asignación pendiente con ese ID."""

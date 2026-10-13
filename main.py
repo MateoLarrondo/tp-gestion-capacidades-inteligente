@@ -6,6 +6,7 @@ from trabajador import Trabajador
 from supervisor import Supervisor
 from credencial import Credencial
 from area_de_trabajo import AreaDeTrabajo
+from trabajo import Trabajo
 from loader_datos import cargar_datos, guardar_datos
 
 
@@ -61,6 +62,13 @@ def buscar_trabajador(id_trabajador):
     for t in Trabajador.registro.trabajadores:
         if t.id_trabajador == id_trabajador:
             return t
+    return None
+
+def buscar_area(id_area):
+    """Devuelve el área con ese ID, o None si no existe."""
+    for a in AreaDeTrabajo.registro.areas:
+        if a.id_area == id_area:
+            return a
     return None
 
 def solicitar_rol():
@@ -180,7 +188,22 @@ def gestion():
         else:
             guardar_datos()
     elif opcion == "7":
-            "s"
+        id_trabajo = input("Ingrese el ID del trabajo: ").strip()
+        titulo = input("Ingrese el título del trabajo: ")
+        descripcion = input("Ingrese la descripción del trabajo: ")
+        duracion_horas = pedir_numero_positivo("Ingrese la duración en horas: ")
+        habilidades = pedir_habilidades("Ingrese las habilidades requeridas separadas por comas: ")
+        credenciales = pedir_habilidades("Ingrese las credenciales requeridas separadas por comas: ")
+        area = buscar_area(input("Ingrese el ID del área del trabajo (ej: A1): ").strip())
+        if area is None:
+            print("Error: No existe un área con ese ID.\n")
+        else:
+            try:
+                Trabajo(id_trabajo, titulo, descripcion, duracion_horas, habilidades, credenciales, area)
+            except ValueError as error:
+                print(f"Error: {error}\n")
+            else:
+                guardar_datos()
 
 def solicitar_opcion_gestion():
     while True:

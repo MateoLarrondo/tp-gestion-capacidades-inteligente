@@ -5,6 +5,7 @@ from enums import FranjaHoraria
 from trabajador import Trabajador
 from supervisor import Supervisor
 from credencial import Credencial
+from area_de_trabajo import AreaDeTrabajo
 from loader_datos import cargar_datos, guardar_datos
 
 
@@ -164,7 +165,20 @@ def gestion():
             else:
                 print("Error: La habilidad no puede estar vacía.\n")
     elif opcion == "6":
-            "s"
+        id_area = input("Ingrese el ID del área: ").strip()
+        nombre = input("Ingrese el nombre del área: ")
+        credenciales_obligatorias = pedir_habilidades("Ingrese las credenciales obligatorias separadas por comas: ")
+        limites = {}
+        for franja in FranjaHoraria:
+            entrada = input(f"Ingrese el límite de personal en la franja {franja.value} (vacío si no se usa): ").strip()
+            if entrada:
+                limites[franja] = int(entrada) if entrada.isdigit() else 0
+        try:
+            AreaDeTrabajo(id_area, nombre, credenciales_obligatorias, limites)
+        except ValueError as error:
+            print(f"Error: {error}\n")
+        else:
+            guardar_datos()
     elif opcion == "7":
             "s"
 

@@ -46,6 +46,10 @@ class AreaDeTrabajo:
             self._trabajador_asignado_por_franja_por_fecha[clave] = set()
         self._trabajador_asignado_por_franja_por_fecha[clave].add(id_trabajador)
 
+    def reiniciar_semana(self):
+        """Libera el cupo usado en todas las franjas al inicio de un nuevo ciclo."""
+        self._trabajador_asignado_por_franja_por_fecha.clear()
+
     def validar_limite_trabajador_por_franja(self):
         """Asegura que los límites de trabajador por franja sean positivos."""
         for franja, limite in self.limite_trabajador_por_franja.items():

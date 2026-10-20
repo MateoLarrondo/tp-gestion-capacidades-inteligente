@@ -217,7 +217,11 @@ def gestion():
                 guardar_datos()
     elif opcion == "8":
         Trabajador.reiniciar_semana_todos()
-        print("Semana reiniciada: las horas asignadas de todo el personal volvieron a cero.\n")
+        for area in AreaDeTrabajo.registro.areas:
+            area.reiniciar_semana()
+        SistemaAsignacion.reiniciar_semana()
+        asignaciones.clear()
+        print("Semana reiniciada: se liberaron las horas, franjas y asignaciones de la semana.\n")
 
 def solicitar_opcion_gestion():
     while True:

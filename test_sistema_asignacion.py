@@ -300,3 +300,15 @@ def test_formalizar_rechaza_supervisor_de_otra_area(asignacion):
     with pytest.raises(PermissionError):
         asignacion.formalizar(supervisor)
     assert asignacion.supervisor_aprobador is None
+
+
+# ---------- reiniciar_semana ----------
+
+def test_reiniciar_semana_permite_volver_a_asignar_la_misma_labor(trabajo):
+    SistemaAsignacion(1, trabajo, FECHA, F.MANIANA).agregar_trabajador(trabajador_apto("W1"))
+
+    SistemaAsignacion.reiniciar_semana()
+
+    nueva = SistemaAsignacion(2, trabajo, FECHA, F.MANIANA)
+    nueva.agregar_trabajador(trabajador_apto("W2"))
+    assert nueva.trabajador.id_trabajador == "W2"

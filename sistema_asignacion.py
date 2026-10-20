@@ -29,6 +29,11 @@ class SistemaAsignacion:
         self.estado = EstadoAsignacion.PENDIENTE
         self.supervisor_aprobador: Optional[Supervisor] = None
 
+    @classmethod
+    def reiniciar_semana(cls):
+        """Libera todas las labores comprometidas al inicio de un nuevo ciclo."""
+        cls._asignaciones_activas.clear()
+
     def agregar_trabajador(self, trabajador: Optional[Trabajador] = None):
         """Propone un trabajador para la asignación, validando aptitud, disponibilidad,
         carga horaria y cupo, y reservando esos recursos de inmediato (reglas 4, 5, 6, 7, 9, 10).

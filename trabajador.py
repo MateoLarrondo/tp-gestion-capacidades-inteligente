@@ -88,8 +88,9 @@ class Trabajador:
         self.horas_asignadas_semana += horas
 
     def reiniciar_semana(self):
-        """Restablece la contabilidad de horas al inicio de un nuevo ciclo."""
+        """Restablece las horas y las franjas ocupadas al inicio de un nuevo ciclo."""
         self.horas_asignadas_semana = 0.0
+        self._franjas_ocupadas.clear()
 
     @classmethod
     def reiniciar_semana_todos(cls):

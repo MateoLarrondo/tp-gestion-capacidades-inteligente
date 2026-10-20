@@ -203,6 +203,14 @@ def test_reiniciar_semana_pone_las_horas_en_cero(trabajador):
     assert trabajador.horas_asignadas_semana == 0.0
 
 
+def test_reiniciar_semana_libera_las_franjas_ocupadas(trabajador):
+    trabajador.registrar_ocupacion(F.MANIANA, FECHA)
+
+    trabajador.reiniciar_semana()
+
+    assert not trabajador.esta_ocupado(F.MANIANA, FECHA)
+
+
 # ---------- reiniciar_semana_todos ----------
 
 def test_reiniciar_semana_todos_reinicia_a_todo_el_registro(trabajador, monkeypatch):

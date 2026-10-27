@@ -158,6 +158,6 @@ class Trabajador:
         return (
             self.esta_disponible(franja_horaria, fecha)
             and self.tiene_credenciales_activas(trabajo.credenciales_requeridas, fecha)
-            and self.tiene_credenciales_activas(area.credenciales_obligatorias, fecha)
+            and self.tiene_credenciales_activas(area.credenciales_efectivas(), fecha)
             and area.tiene_cupo_disponible(fecha, franja_horaria, self.id_trabajador)
         )

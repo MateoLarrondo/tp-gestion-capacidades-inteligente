@@ -26,6 +26,7 @@ def trabajo_mock(id_trabajo="T1"):
     trabajo.area_trabajo.id_area = "A1"
     trabajo.area_trabajo.nombre = "Sala de Servidores"
     trabajo.area_trabajo.credenciales_obligatorias = {"Altura"}
+    trabajo.area_trabajo.credenciales_efectivas.return_value = {"Altura"}
     trabajo.area_trabajo.tiene_cupo_disponible.return_value = True
     # usa el reparto real, que solo depende de duracion_horas
     trabajo.reparto_por_dia.side_effect = lambda fecha: Trabajo.reparto_por_dia(trabajo, fecha)

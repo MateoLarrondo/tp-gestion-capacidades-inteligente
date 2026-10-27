@@ -76,7 +76,7 @@ class SistemaAsignacion:
                     f"{trabajador.nombre} no tiene activas el {dia} las credenciales que exige "
                     f"'{self.trabajo.titulo}'."
                 )
-            if not trabajador.tiene_credenciales_activas(area.credenciales_obligatorias, dia):
+            if not trabajador.tiene_credenciales_activas(area.credenciales_efectivas(), dia):
                 raise ValueError(f"{trabajador.nombre} no es apto el {dia} para el área '{area.nombre}'.")
             if not area.tiene_cupo_disponible(dia, self.franja_horaria, trabajador.id_trabajador):
                 raise ValueError(

@@ -15,16 +15,28 @@ class AreaDeTrabajo:
         nombre: str,
         credenciales_obligatorias: Set[str],
         limite_trabajador_por_franja: Dict[FranjaHoraria, int],
+        area_padre=None,
     ):
         self.id_area = id_area
         self.nombre = nombre
         self.credenciales_obligatorias = set(credenciales_obligatorias)
         self.limite_trabajador_por_franja = limite_trabajador_por_franja
+        # área que contiene a esta (ej: una estación dentro de una planta); None si es raíz
+        self.area_padre = area_padre
         self._trabajador_asignado_por_franja_por_fecha: Dict[tuple[date, FranjaHoraria], set[str]] = {}
         self.validar_limite_trabajador_por_franja()
         self.id_no_nulo()
         # se registra solo si pasó las validaciones
         AreaDeTrabajo.registro.registrar_area(self)
+
+    def credenciales_efectivas(self):
+        """Credenciales obligatorias del área más las de todas sus áreas padre (recursivo).
+        Regla 10: quien trabaja en una subárea también está dentro del área que la contiene."""
+        if self.area_padre is None:
+            # caso base: área raíz, solo exige sus propias credenciales
+            return set(self.credenciales_obligatorias)
+        # paso recursivo: las propias unidas a las de su padre (que a su vez suma las del suyo)
+        return self.credenciales_obligatorias | self.area_padre.credenciales_efectivas()
 
     def tiene_cupo_disponible(
         self, fecha: date, franja_horaria: FranjaHoraria, id_trabajador: str
@@ -58,4 +70,3 @@ class AreaDeTrabajo:
         """Asegura que el identificador del área no sea nulo."""
         if not self.id_area:
             raise ValueError("El identificador del área de trabajo no puede ser nulo.")
-

@@ -17,7 +17,9 @@ def cargar_datos(ruta="data/datos_sistema.json"):
 
     for a in datos["areas"]:
         limites = {FranjaHoraria(f): n for f, n in a["limite_trabajador_por_franja"].items()}
-        AreaDeTrabajo(a["id_area"], a["nombre"], set(a["credenciales_obligatorias"]), limites)
+                # el padre ya fue creado antes porque guardar_datos escribe las áreas en orden de creación
+        area_padre = next((p for p in AreaDeTrabajo.registro.areas if p.id_area == a.get("id_area_padre")), None)
+        AreaDeTrabajo(a["id_area"], a["nombre"], set(a["credenciales_obligatorias"]), limites, area_padre)
 
     for t in datos["trabajadores"]:
         credenciales = [
@@ -60,6 +62,7 @@ def guardar_datos(ruta="data/datos_sistema.json"):
                 "nombre": a.nombre,
                 "credenciales_obligatorias": sorted(a.credenciales_obligatorias),
                 "limite_trabajador_por_franja": {f.value: n for f, n in a.limite_trabajador_por_franja.items()},
+                "id_area_padre": a.area_padre.id_area if a.area_padre else None,
             }
             for a in AreaDeTrabajo.registro.areas
         ],

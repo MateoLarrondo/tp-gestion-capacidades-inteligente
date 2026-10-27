@@ -196,12 +196,17 @@ def gestion():
             entrada = input(f"Ingrese el límite de personal en la franja {franja.value} (vacío si no se usa): ").strip()
             if entrada:
                 limites[franja] = int(entrada) if entrada.isdigit() else 0
-        try:
-            AreaDeTrabajo(id_area, nombre, credenciales_obligatorias, limites)
-        except ValueError as error:
-            print(f"Error: {error}\n")
+        id_padre = input("Ingrese el ID del área que la contiene (vacío si no está dentro de otra): ").strip()
+        area_padre = buscar_area(id_padre)
+        if id_padre and area_padre is None:
+            print("Error: No existe un área con ese ID.\n")
         else:
-            guardar_datos()
+            try:
+                AreaDeTrabajo(id_area, nombre, credenciales_obligatorias, limites, area_padre)
+            except ValueError as error:
+                print(f"Error: {error}\n")
+            else:
+                guardar_datos()
     elif opcion == "7":
         id_trabajo = input("Ingrese el ID del trabajo: ").strip()
         titulo = input("Ingrese el título del trabajo: ")

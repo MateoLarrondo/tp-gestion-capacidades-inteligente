@@ -1,5 +1,6 @@
 import json
 import datetime
+from collections import deque
 
 from enums import FranjaHoraria, EstadoAsignacion
 from trabajador import Trabajador
@@ -12,6 +13,8 @@ from loader_datos import cargar_datos, guardar_datos
 
 # asignaciones propuestas durante la ejecución (no se guardan en el JSON)
 asignaciones = []
+# cola FIFO de asignaciones pendientes: la primera en entrar es la primera en aprobarse
+cola_pendientes = deque()
 
 
 def pedir_fecha(mensaje):
@@ -227,12 +230,9 @@ def solicitar_opcion_gestion():
              return opcion
          print("Opcion invalida. Por favor seleccione una opcion entre 1 y 8")
 
-def aprobar_asignacion(pendientes, id_asignacion):
-    """Pide el supervisor y formaliza la asignación pendiente con ese ID."""
-    asignacion = next((a for a in pendientes if str(a.id_asignacion) == id_asignacion), None)
-    if asignacion is None:
-        print("Error: No hay una asignación pendiente con ese ID.\n")
-        return
+def aprobar_siguiente(cola):
+    """Pide el supervisor y formaliza la asignación que está al frente de la cola (FIFO)."""
+    asignacion = cola[0]  # se mira el frente sin sacarlo, por si la aprobación falla
     aprobador = buscar_trabajador(input("Ingrese su ID de supervisor: ").strip())
     if aprobador is None:
         print("Error: No existe un trabajador con ese ID.\n")
@@ -242,7 +242,8 @@ def aprobar_asignacion(pendientes, id_asignacion):
     except (ValueError, PermissionError) as error:
         print(f"Error: {error}\n")
     else:
-        print("Asignación aprobada.\n")
+        cola.popleft()  # recién al aprobarse sale de la cola
+        print(f"Asignación {asignacion.id_asignacion} aprobada.\n")
 
 def supervisor():
     print("Ha seleccionado el rol de supervisor.")
@@ -271,17 +272,19 @@ def supervisor():
                     print(f"Error: {error}\n")
                 else:
                     asignaciones.append(asignacion)
+                    cola_pendientes.append(asignacion)  # entra al final de la cola
                     print(f"Asignación {asignacion.id_asignacion} propuesta para {asignacion.trabajador.nombre} (Pendiente).\n")
     elif opcion == "2":
-        pendientes = [a for a in asignaciones if a.estado == EstadoAsignacion.PENDIENTE]
-        if not pendientes:
+        if not cola_pendientes:
             print("No hay asignaciones pendientes.\n")
-        for a in pendientes:
-            print(f"{a.id_asignacion} - {a.trabajo.titulo} | {a.trabajador.nombre} | {a.fecha} {a.franja_horaria.value}")
-        if pendientes:
-            id_asignacion = input("Ingrese el ID de la asignación a aprobar (vacío para volver): ").strip()
-            if id_asignacion:
-                aprobar_asignacion(pendientes, id_asignacion)
+        else:
+            # se muestran en orden de llegada; la primera es la próxima a aprobar
+            for posicion, a in enumerate(cola_pendientes, start=1):
+                print(f"{posicion}. {a.id_asignacion} - {a.trabajo.titulo} | {a.trabajador.nombre} | {a.fecha} {a.franja_horaria.value}")
+            siguiente = cola_pendientes[0]
+            respuesta = input(f"¿Aprobar la asignación {siguiente.id_asignacion} (primera en la cola)? (s/n): ").strip().lower()
+            if respuesta == "s":
+                aprobar_siguiente(cola_pendientes)
     elif opcion == "3":
         trabajo = buscar_trabajo(input("Ingrese el ID del trabajo: ").strip())
         if trabajo is None:

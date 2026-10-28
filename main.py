@@ -293,6 +293,7 @@ def supervisor():
                 else:
                     asignaciones.append(asignacion)
                     cola_pendientes.append(asignacion)  # entra al final de la cola
+                    guardar_datos(asignaciones=asignaciones)
                     print(f"Asignación {asignacion.id_asignacion} propuesta para {asignacion.trabajador.nombre} (Pendiente).\n")
     elif opcion == "2":
         if not cola_pendientes:
@@ -326,7 +327,11 @@ def solicitar_opcion():
      print("Opcion invalida. Por favor seleccione 1, 2 o 3")
 
 def main():
-        cargar_datos()
+        asignaciones[:] = cargar_datos()
+        cola_pendientes.clear()
+        cola_pendientes.extend(
+            a for a in asignaciones
+            if a.estado == EstadoAsignacion.PENDIENTE)
         activo = True
         while activo:
             print("----------------------MENU SISTEMA DE ASIGNACION DE TRABAJADORES----------------------")

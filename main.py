@@ -10,7 +10,7 @@ from trabajo import Trabajo
 from sistema_asignacion import SistemaAsignacion
 from loader_datos import cargar_datos, guardar_datos
 
-# asignaciones propuestas durante la ejecución (no se guardan en el JSON)
+# asignaciones pendientes y aprobadas durante la semana
 asignaciones = []
 # cola FIFO de asignaciones pendientes: la primera en entrar es la primera en aprobarse
 cola_pendientes = deque()
@@ -126,7 +126,7 @@ def gestion():
         except ValueError as error:
             print(f"Error: {error}\n")
         else:
-            guardar_datos()
+            guardar_datos(asignaciones=asignaciones)
 
     elif opcion == "2":
         id_trabajador = input("Ingrese el ID del supervisor: ").strip()
@@ -148,7 +148,7 @@ def gestion():
         except ValueError as error:
             print(f"Error: {error}\n")
         else:
-            guardar_datos()
+            guardar_datos(asignaciones=asignaciones)
     elif opcion == "3":
         nombre_credencial = input("Ingrese el nombre de la credencial: ")
         fecha_obtencion = pedir_fecha("Ingrese la fecha de obtención de la credencial (YYYY-MM-DD): ")
@@ -174,7 +174,7 @@ def gestion():
                 print(f"Error: {error}\n")
             else:
                 trabajador.credenciales.append(credencial)
-                guardar_datos()
+                guardar_datos(asignaciones=asignaciones)
     elif opcion == "5":
         trabajador = buscar_trabajador(input("Ingrese el ID del trabajador: ").strip())
         if trabajador is None:
@@ -183,7 +183,7 @@ def gestion():
             habilidad = input("Ingrese la habilidad a agregar: ").strip()
             if habilidad:
                 trabajador.habilidades.add(habilidad)
-                guardar_datos()
+                guardar_datos(asignaciones=asignaciones)
             else:
                 print("Error: La habilidad no puede estar vacía.\n")
     elif opcion == "6":
@@ -205,7 +205,7 @@ def gestion():
             except ValueError as error:
                 print(f"Error: {error}\n")
             else:
-                guardar_datos()
+                guardar_datos(asignaciones=asignaciones)
     elif opcion == "7":
         id_trabajo = input("Ingrese el ID del trabajo: ").strip()
         titulo = input("Ingrese el título del trabajo: ")
@@ -222,7 +222,7 @@ def gestion():
             except ValueError as error:
                 print(f"Error: {error}\n")
             else:
-                guardar_datos()
+                guardar_datos(asignaciones=asignaciones)
     elif opcion == "8":
         Trabajador.reiniciar_semana_todos()
         for area in AreaDeTrabajo.registro.areas:

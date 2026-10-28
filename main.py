@@ -284,7 +284,8 @@ def supervisor():
             if id_trabajador and trabajador is None:
                 print("Error: No existe un trabajador con ese ID.\n")
             else:
-                asignacion = SistemaAsignacion(len(asignaciones) + 1, trabajo, fecha, franja_horaria)
+                nuevo_id = max((a.id_asignacion for a in asignaciones), default=0 ) + 1
+                asignacion = SistemaAsignacion(nuevo_id, trabajo, fecha, franja_horaria)
                 try:
                     asignacion.agregar_trabajador(trabajador)
                 except ValueError as error:

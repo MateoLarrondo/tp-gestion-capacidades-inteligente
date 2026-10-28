@@ -225,11 +225,21 @@ def gestion():
                 guardar_datos(asignaciones=asignaciones)
     elif opcion == "8":
         Trabajador.reiniciar_semana_todos()
+
         for area in AreaDeTrabajo.registro.areas:
             area.reiniciar_semana()
+
         SistemaAsignacion.reiniciar_semana()
+
         asignaciones.clear()
-        print("Semana reiniciada: se liberaron las horas, franjas y asignaciones de la semana.\n")
+        cola_pendientes.clear()
+
+        guardar_datos(asignaciones=asignaciones)
+
+        print(
+            "Semana reiniciada: se liberaron las horas, "
+            "franjas y asignaciones de la semana.\n"
+        )
 
 def solicitar_opcion_gestion():
     while True:

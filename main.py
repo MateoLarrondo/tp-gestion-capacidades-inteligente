@@ -261,6 +261,7 @@ def aprobar_siguiente(cola):
         print(f"Error: {error}\n")
     else:
         cola.popleft()  # recién al aprobarse sale de la cola
+        guardar_datos(asignaciones=asignaciones)
         print(f"Asignación {asignacion.id_asignacion} aprobada.\n")
 
 def supervisor():
